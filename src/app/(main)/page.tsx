@@ -17,7 +17,9 @@ import {
   Wallet, 
   Settings, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Users,
+  Mail
 } from 'lucide-react'
 
 export default function HomePage() {
@@ -41,9 +43,9 @@ export default function HomePage() {
               rotate: [0, 360]
             }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="text-5xl"
+            className="text-rose-400"
           >
-            💖
+            <Heart className="w-16 h-16 fill-rose-400" />
           </motion.div>
           <p className="text-rose-400 font-bold animate-pulse">우리들의 공간을 준비 중이에요...</p>
         </div>
@@ -82,7 +84,7 @@ export default function HomePage() {
           whileHover={{ scale: 1.1, rotate: 10 }}
           className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-rose-400 to-pink-500 rounded-[2rem] mb-8 shadow-2xl shadow-rose-200"
         >
-          <span className="text-5xl">💑</span>
+          <Heart className="w-12 h-12 text-white fill-white" />
         </motion.div>
         <h1 className="text-5xl font-black mb-4">
           반가워요, <span className="text-gradient">{user.name}</span>님!
@@ -189,7 +191,7 @@ export default function HomePage() {
               </div>
               <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
                 <div className="w-20 h-20 bg-gradient-to-br from-rose-100 to-pink-100 rounded-3xl flex items-center justify-center shadow-inner">
-                  <span className="text-4xl animate-bounce">💌</span>
+                  <Mail className="w-10 h-10 text-rose-500 animate-bounce" />
                 </div>
                 <div className="flex-1">
                   <h4 className="text-2xl font-black text-foreground mb-1">파트너와 함께 연결해 보세요!</h4>

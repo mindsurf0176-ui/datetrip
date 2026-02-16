@@ -179,9 +179,9 @@ export default function TripDetailPage() {
         <motion.div 
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-5xl"
+          className="text-rose-400"
         >
-          💖
+          <Heart className="w-16 h-16 fill-rose-400" />
         </motion.div>
         <p className="text-rose-400 font-bold">우리의 여행 지도를 그리는 중...</p>
       </div>

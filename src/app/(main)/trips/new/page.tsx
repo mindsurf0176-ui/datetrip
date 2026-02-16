@@ -110,7 +110,7 @@ export default function NewTripPage() {
               </label>
               <Input
                 id="title"
-                placeholder="예: 우리의 1000일 기념 제주도 여행 🌊"
+                placeholder="예: 우리의 1000일 기념 제주도 여행"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required

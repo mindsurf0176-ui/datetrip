@@ -27,7 +27,7 @@ export default function MainLayout({
                   whileTap={{ scale: 0.95 }}
                   className="w-11 h-11 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200 group-hover:shadow-rose-300 transition-all"
                 >
-                  <span className="text-xl">💕</span>
+                  <Heart className="w-6 h-6 text-white fill-white" />
                 </motion.div>
                 <span className="text-2xl font-black text-gradient hidden sm:block">
                   DateTrip

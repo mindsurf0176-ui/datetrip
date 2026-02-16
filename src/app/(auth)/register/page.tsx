@@ -9,6 +9,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
+import { Heart } from 'lucide-react'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
@@ -66,9 +67,9 @@ export default function RegisterPage() {
           <Link href="/login" className="inline-block group">
              <motion.div 
               whileHover={{ scale: 1.1 }}
-              className="text-4xl mb-4"
+              className="mb-4 bg-rose-100 p-4 rounded-2xl inline-flex items-center justify-center shadow-inner shadow-rose-200"
             >
-              💝
+              <Heart className="w-8 h-8 text-rose-500 fill-rose-500" />
             </motion.div>
           </Link>
           <h1 className="text-3xl font-black tracking-tight mb-2">

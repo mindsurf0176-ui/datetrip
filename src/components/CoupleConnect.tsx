@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Heart, Loader2 } from 'lucide-react'
 
 export default function CoupleConnect() {
   const { user, couple, refreshCouple } = useAuth()
@@ -100,7 +101,7 @@ export default function CoupleConnect() {
       if (updateError) throw updateError
 
       await refreshCouple()
-      setSuccess('커플 연결이 완료되었습니다! 💕')
+      setSuccess('커플 연결이 완료되었습니다!')
     } catch (err: Error | unknown) {
       const message = err instanceof Error ? err.message : '커플 연결에 실패했습니다.'
       setError(message)
@@ -114,9 +115,12 @@ export default function CoupleConnect() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-rose-600">💕 커플 연결 완료</CardTitle>
+          <CardTitle className="text-rose-600 flex items-center gap-2">
+            <Heart className="w-5 h-5 fill-rose-600" />
+            커플 연결 완료
+          </CardTitle>
           <CardDescription>
-            함께 여행을 계획필요
+            함께 여행을 계획해 보세요
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -134,7 +138,10 @@ export default function CoupleConnect() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-rose-600">⏳ 연결 대기 중</CardTitle>
+          <CardTitle className="text-rose-600 flex items-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            연결 대기 중
+          </CardTitle>
           <CardDescription>
             파트너가 초대 코드를 입력할 때까지 기다려주세요
           </CardDescription>
@@ -157,7 +164,10 @@ export default function CoupleConnect() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-rose-600">💕 커플 연결</CardTitle>
+        <CardTitle className="text-rose-600 flex items-center gap-2">
+          <Heart className="w-5 h-5 fill-rose-600" />
+          커플 연결
+        </CardTitle>
         <CardDescription>
           함께 여행을 계획할 파트너를 연결하세요
         </CardDescription>

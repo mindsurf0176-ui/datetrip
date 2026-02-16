@@ -9,6 +9,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
+import { Heart, AlertCircle, Sparkles } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -57,7 +58,7 @@ export default function LoginPage() {
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-rose-400 to-pink-500 rounded-[2rem] mb-6 shadow-2xl shadow-rose-200/50 cursor-pointer"
           >
-            <span className="text-5xl">💕</span>
+            <Heart className="w-12 h-12 text-white fill-white" />
           </motion.div>
           <h1 className="text-4xl font-black tracking-tight mb-2">
             <span className="text-gradient">DateTrip</span>
@@ -74,7 +75,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, x: 0 }}
                 className="p-4 text-sm text-rose-600 bg-rose-50/50 backdrop-blur-sm rounded-2xl border border-rose-100 flex items-center gap-3"
               >
-                <span className="text-lg">⚠️</span>
+                <AlertCircle className="w-5 h-5" />
                 <span className="font-medium">{error}</span>
               </motion.div>
             )}
@@ -143,7 +144,7 @@ export default function LoginPage() {
                   router.push('/')
                 }}
               >
-                <span className="mr-2 text-xl">✨</span>
+                <Sparkles className="mr-2 w-5 h-5" />
                 게스트로 둘러보기
               </Button>
             </div>
@@ -163,9 +164,9 @@ export default function LoginPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="text-center text-sm font-semibold text-rose-300 mt-10"
+          className="text-center text-sm font-semibold text-rose-300 mt-10 flex items-center justify-center gap-1.5"
         >
-          Made with 💕 for every couple
+          Made with <Heart className="w-4 h-4 fill-rose-300" /> for every couple
         </motion.p>
       </motion.div>
     </div>
