@@ -13,8 +13,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DayTimeline } from '@/components/DayTimeline'
 import { KakaoMap } from '@/components/KakaoMap'
 import { PlaceSearchDialog } from '@/components/PlaceSearchDialog'
-import { ArrowLeft, Calendar, MapPin, Plus } from 'lucide-react'
+import { 
+  ArrowLeft, 
+  Calendar, 
+  MapPin, 
+  Plus, 
+  Navigation, 
+  CalendarDays, 
+  Map as MapIcon,
+  Sparkles,
+  Heart
+} from 'lucide-react'
 import { KakaoMapProvider } from '@/components/KakaoMapProvider'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function TripDetailPage() {
   const params = useParams()
@@ -28,7 +39,6 @@ export default function TripDetailPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string>('')
 
-  // 여행 정보 가져오기
   const fetchTrip = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -45,7 +55,6 @@ export default function TripDetailPage() {
     }
   }, [tripId, router])
 
-  // 일정 아이템 가져오기
   const fetchScheduleItems = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -70,7 +79,6 @@ export default function TripDetailPage() {
     }
   }, [tripId, fetchTrip, fetchScheduleItems])
 
-  // 날짜별로 일정 그룹화
   const getDatesBetween = (startDate: string, endDate: string): string[] => {
     const dates: string[] = []
     const current = new Date(startDate)
@@ -88,7 +96,6 @@ export default function TripDetailPage() {
     return scheduleItems.filter((item) => item.visit_date === date)
   }
 
-  // 장소 추가
   const handleAddPlace = async (place: {
     place_name: string
     address: string
@@ -126,15 +133,12 @@ export default function TripDetailPage() {
     }
   }
 
-  // 일정 순서 변경
   const handleReorder = async (items: ScheduleItem[]) => {
-    // UI 먼저 업데이트
     const otherItems = scheduleItems.filter(
       (item) => item.visit_date !== items[0]?.visit_date
     )
     setScheduleItems([...otherItems, ...items])
 
-    // DB 업데이트
     try {
       for (const item of items) {
         await supabase
@@ -147,7 +151,6 @@ export default function TripDetailPage() {
     }
   }
 
-  // 일정 삭제
   const handleDelete = async (id: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return
 
@@ -172,18 +175,28 @@ export default function TripDetailPage() {
 
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">로딩 중...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="text-5xl"
+        >
+          💖
+        </motion.div>
+        <p className="text-rose-400 font-bold">우리의 여행 지도를 그리는 중...</p>
       </div>
     )
   }
 
   if (!trip) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">여행을 찾을 수 없습니다.</p>
+      <div className="max-w-md mx-auto text-center py-20 bg-glass rounded-[2rem] border border-white">
+        <Heart className="w-16 h-16 text-rose-300 mx-auto mb-6" />
+        <h2 className="text-2xl font-black mb-4">여행을 찾을 수 없어요</h2>
         <Link href="/trips">
-          <Button className="mt-4">여행 목록으로</Button>
+          <Button className="bg-rose-500 hover:bg-rose-600 rounded-2xl h-12 px-8 font-bold">
+            목록으로 돌아가기
+          </Button>
         </Link>
       </div>
     )
@@ -202,88 +215,155 @@ export default function TripDetailPage() {
 
   return (
     <KakaoMapProvider>
-      <div className="space-y-6">
-        {/* 헤더 */}
-        <div className="flex items-center gap-4">
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
+        {/* Back Button */}
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
           <Link href="/trips">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              뒤로
+            <Button variant="ghost" className="text-muted-foreground hover:text-rose-500 font-bold group">
+              <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+              나의 여행 목록
             </Button>
           </Link>
-        </div>
+        </motion.div>
 
-        {/* 여행 정보 */}
-        <div className="bg-gradient-to-r from-rose-500 to-pink-600 rounded-2xl p-6 text-white">
-          <h1 className="text-2xl font-bold">{trip.title}</h1>
-          <div className="flex items-center gap-4 mt-3 text-rose-100">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-4 h-4" />
-              {trip.destination}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {new Date(trip.start_date).toLocaleDateString('ko-KR')} ~{' '}
-              {new Date(trip.end_date).toLocaleDateString('ko-KR')}
-            </span>
+        {/* Trip Hero Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 rounded-[3rem] p-10 text-white shadow-2xl shadow-rose-200"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 text-rose-100 font-bold text-sm uppercase tracking-widest mb-4">
+              <Sparkles className="w-4 h-4 fill-rose-100" />
+              Travel Itinerary
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight">{trip.title}</h1>
+            <div className="flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
+                <MapPin className="w-6 h-6 text-rose-100" />
+                <span className="text-xl font-bold">{trip.destination}</span>
+              </div>
+              <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
+                <CalendarDays className="w-6 h-6 text-rose-100" />
+                <span className="text-xl font-bold">
+                  {new Date(trip.start_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} - {new Date(trip.end_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
-        <Tabs defaultValue="timeline" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="timeline">일정</TabsTrigger>
-            <TabsTrigger value="map">지도</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="timeline" className="w-full space-y-8">
+          <div className="flex justify-center">
+            <TabsList className="bg-glass p-1.5 rounded-[1.5rem] border border-white shadow-lg h-16 flex w-full max-w-md">
+              <TabsTrigger 
+                value="timeline" 
+                className="flex-1 rounded-[1.2rem] data-[state=active]:bg-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-black text-lg transition-all"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                일정 보기
+              </TabsTrigger>
+              <TabsTrigger 
+                value="map" 
+                className="flex-1 rounded-[1.2rem] data-[state=active]:bg-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-black text-lg transition-all"
+              >
+                <MapIcon className="w-5 h-5 mr-2" />
+                지도 보기
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* 일정 탭 */}
-          <TabsContent value="timeline" className="space-y-4">
-            {tripDates.map((date) => {
-              const items = getItemsByDate(date)
-              return (
-                <div key={date}>
-                  <DayTimeline
-                    date={date}
-                    items={items}
-                    onReorder={handleReorder}
-                    onDelete={handleDelete}
-                  />
-                  <Button
-                    variant="outline"
-                    className="w-full mt-2 border-dashed"
-                    onClick={() => openSearch(date)}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    장소 추가
-                  </Button>
-                </div>
-              )
-            })}
+          {/* Timeline View */}
+          <TabsContent value="timeline" className="space-y-12">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                className="space-y-12"
+              >
+                {tripDates.map((date, index) => {
+                  const items = getItemsByDate(date)
+                  return (
+                    <motion.div 
+                      key={date}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="space-y-6"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="bg-rose-500 text-white w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg shadow-rose-100">
+                          <span className="text-xs uppercase leading-none mb-1">Day</span>
+                          <span className="text-xl leading-none">{index + 1}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-black text-foreground">
+                            {new Date(date).toLocaleDateString('ko-KR', { weekday: 'long', month: 'long', day: 'numeric' })}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="ml-7 pl-10 border-l-2 border-dashed border-rose-200 space-y-4">
+                        <DayTimeline
+                          date={date}
+                          items={items}
+                          onReorder={handleReorder}
+                          onDelete={handleDelete}
+                        />
+                        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                          <Button
+                            variant="outline"
+                            className="w-full h-16 rounded-[2rem] border-2 border-dashed border-rose-200 hover:border-rose-400 hover:bg-rose-50 transition-all font-black text-rose-500 gap-2 text-lg"
+                            onClick={() => openSearch(date)}
+                          >
+                            <Plus className="w-6 h-6" />
+                            장소 추가하기
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </motion.div>
+            </AnimatePresence>
           </TabsContent>
 
-          {/* 지도 탭 */}
+          {/* Map View */}
           <TabsContent value="map">
-            <KakaoMap
-              places={mapPlaces}
-              height="500px"
-            />
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mapPlaces.map((place, index) => (
-                <div
-                  key={place.id}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                >
-                  <span className="bg-rose-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="font-medium">{place.place_name}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(place.visit_date).toLocaleDateString('ko-KR')}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-8"
+            >
+              <div className="rounded-[3rem] overflow-hidden shadow-2xl shadow-rose-100 border-4 border-white relative">
+                <KakaoMap
+                  places={mapPlaces}
+                  height="600px"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {mapPlaces.map((place, index) => (
+                  <motion.div
+                    key={place.id}
+                    whileHover={{ y: -5 }}
+                    className="flex items-center gap-5 p-5 bg-glass rounded-[2rem] border border-white shadow-xl shadow-rose-100/50"
+                  >
+                    <div className="bg-rose-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black shadow-lg shadow-rose-200 flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-black text-foreground truncate">{place.place_name}</p>
+                      <p className="text-sm text-muted-foreground font-semibold flex items-center gap-1">
+                        <Navigation className="w-3 h-3" />
+                        Day {tripDates.indexOf(place.visit_date) + 1}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </TabsContent>
         </Tabs>
 

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { motion } from 'framer-motion'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -38,53 +39,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-100 via-pink-50 to-rose-50 p-4 relative overflow-hidden">
-      {/* 배경 장식 */}
-      <div className="absolute top-20 left-20 w-72 h-72 bg-rose-200/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-pink-200/30 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-rose-100/20 to-pink-100/20 rounded-full blur-3xl" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-romantic">
+      {/* Background elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-rose-200/20 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-pink-200/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
       
-      <div className="w-full max-w-md relative z-10">
-        {/* 로고 섹션 */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-rose-400 to-pink-500 rounded-3xl mb-4 shadow-xl shadow-rose-200/50 rotate-3 hover:rotate-0 transition-transform">
-            <span className="text-4xl">💕</span>
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-pink-500 bg-clip-text text-transparent">
-            DateTrip
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md relative z-10"
+      >
+        {/* Logo Section */}
+        <div className="text-center mb-10">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-rose-400 to-pink-500 rounded-[2rem] mb-6 shadow-2xl shadow-rose-200/50 cursor-pointer"
+          >
+            <span className="text-5xl">💕</span>
+          </motion.div>
+          <h1 className="text-4xl font-black tracking-tight mb-2">
+            <span className="text-gradient">DateTrip</span>
           </h1>
-          <p className="text-gray-500 mt-2">커플을 위한 여행 플래너</p>
+          <p className="text-muted-foreground font-medium">우리만의 특별한 여행을 계획해 보세요</p>
         </div>
 
-        {/* 로그인 카드 */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-rose-100/50 p-8 border border-white/50">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Login Card */}
+        <div className="bg-glass rounded-[2.5rem] shadow-2xl shadow-rose-100/50 p-10 border border-white/40">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-4 text-sm text-rose-600 bg-rose-50 rounded-2xl border border-rose-100 flex items-center gap-3">
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="p-4 text-sm text-rose-600 bg-rose-50/50 backdrop-blur-sm rounded-2xl border border-rose-100 flex items-center gap-3"
+              >
                 <span className="text-lg">⚠️</span>
-                {error}
-              </div>
+                <span className="font-medium">{error}</span>
+              </motion.div>
             )}
             
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700 ml-1">
-                이메일
+              <label htmlFor="email" className="text-sm font-semibold text-foreground/80 ml-1">
+                이메일 주소
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="love@datetrip.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-12 rounded-xl border-gray-200 focus:border-rose-300 focus:ring-rose-200 bg-gray-50/50"
+                className="h-14 rounded-2xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm transition-all"
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700 ml-1">
-                비밀번호
-              </label>
+              <div className="flex justify-between items-center px-1">
+                <label htmlFor="password" className="text-sm font-semibold text-foreground/80">
+                  비밀번호
+                </label>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -92,54 +107,67 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-12 rounded-xl border-gray-200 focus:border-rose-300 focus:ring-rose-200 bg-gray-50/50"
+                className="h-14 rounded-2xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm transition-all"
               />
             </div>
 
-            <div className="pt-2 space-y-3">
+            <div className="pt-4 space-y-4">
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl font-medium shadow-lg shadow-rose-200/50 transition-all hover:shadow-xl hover:shadow-rose-300/50 hover:-translate-y-0.5"
+                className="w-full h-14 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl font-bold text-lg shadow-lg shadow-rose-200/50 transition-all hover:shadow-xl hover:shadow-rose-300/50 hover:-translate-y-1 active:translate-y-0"
                 disabled={loading}
               >
                 {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                     로그인 중...
                   </div>
-                ) : '로그인'}
+                ) : '지금 시작하기'}
               </Button>
               
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-rose-100"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-transparent px-2 text-muted-foreground font-semibold">OR</span>
+                </div>
+              </div>
+
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
+                className="w-full h-14 rounded-2xl border-2 border-rose-100 hover:border-rose-200 hover:bg-rose-50/50 transition-all font-semibold text-rose-600"
                 onClick={() => {
                   loginAsGuest()
                   router.push('/')
                 }}
               >
-                <span className="mr-2">👀</span>
+                <span className="mr-2 text-xl">✨</span>
                 게스트로 둘러보기
               </Button>
             </div>
           </form>
           
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              아직 계정이 없으신가요?{' '}
-              <Link href="/register" className="text-rose-500 hover:text-rose-600 font-medium hover:underline">
-                회원가입
+          <div className="mt-8 text-center">
+            <p className="text-muted-foreground font-medium">
+              처음이신가요?{' '}
+              <Link href="/register" className="text-rose-500 hover:text-rose-600 font-bold hover:underline transition-all">
+                회원가입 하기
               </Link>
             </p>
           </div>
         </div>
 
-        {/* 하단 장식 */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Made with 💕 for couples
-        </p>
-      </div>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="text-center text-sm font-semibold text-rose-300 mt-10"
+        >
+          Made with 💕 for every couple
+        </motion.p>
+      </motion.div>
     </div>
   )
 }

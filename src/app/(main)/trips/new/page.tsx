@@ -9,7 +9,15 @@ import { useAuth } from '@/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { motion } from 'framer-motion'
+import { 
+  ChevronLeft, 
+  MapPin, 
+  Calendar, 
+  Sparkles,
+  Plane,
+  Gift
+} from 'lucide-react'
 
 export default function NewTripPage() {
   const { couple } = useAuth()
@@ -64,49 +72,72 @@ export default function NewTripPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-rose-600">✈️ 새 여행 만들기</CardTitle>
-          <CardDescription>함께 떠날 여행을 계획하세요</CardDescription>
-        </CardHeader>
-        
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+    <div className="max-w-3xl mx-auto px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-10"
+      >
+        <Link href="/trips" className="inline-flex items-center text-muted-foreground hover:text-rose-500 font-bold mb-6 transition-colors group">
+          <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          목록으로 돌아가기
+        </Link>
+        <h1 className="text-4xl font-black flex items-center gap-3">
+          <span className="text-gradient">설레는 새 여행 계획</span>
+          <Sparkles className="w-8 h-8 text-amber-400 fill-amber-400" />
+        </h1>
+        <p className="text-muted-foreground font-medium text-lg mt-2">우리의 다음 목적지는 어디인가요?</p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="bg-glass rounded-[3rem] p-10 border border-white shadow-2xl shadow-rose-100/50 space-y-8">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">{error}</div>
+              <div className="p-4 text-sm text-rose-600 bg-rose-50 rounded-2xl border border-rose-100 font-bold flex items-center gap-2">
+                <Gift className="w-5 h-5" />
+                {error}
+              </div>
             )}
 
-            <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium">
+            <div className="space-y-3">
+              <label htmlFor="title" className="text-lg font-black text-foreground/80 flex items-center gap-2">
+                <Plane className="w-5 h-5 text-rose-500" />
                 여행 제목
               </label>
               <Input
                 id="title"
-                placeholder="예: 제주도 힐링 여행"
+                placeholder="예: 우리의 1000일 기념 제주도 여행 🌊"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
+                className="h-16 rounded-2xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm text-lg font-bold transition-all px-6"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="destination" className="text-sm font-medium">
+            <div className="space-y-3">
+              <label htmlFor="destination" className="text-lg font-black text-foreground/80 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-rose-500" />
                 여행지
               </label>
               <Input
                 id="destination"
-                placeholder="예: 제주도"
+                placeholder="예: 제주도 서귀포시"
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 required
+                className="h-16 rounded-2xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm text-lg font-bold transition-all px-6"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="startDate" className="text-sm font-medium">
-                  시작일
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <label htmlFor="startDate" className="text-lg font-black text-foreground/80 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-rose-500" />
+                  출발일
                 </label>
                 <Input
                   id="startDate"
@@ -114,12 +145,14 @@ export default function NewTripPage() {
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   required
+                  className="h-16 rounded-2xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm text-lg font-bold transition-all px-6"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="endDate" className="text-sm font-medium">
-                  종료일
+              <div className="space-y-3">
+                <label htmlFor="endDate" className="text-lg font-black text-foreground/80 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-rose-500" />
+                  도착일
                 </label>
                 <Input
                   id="endDate"
@@ -127,25 +160,33 @@ export default function NewTripPage() {
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   required
+                  className="h-16 rounded-2xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm text-lg font-bold transition-all px-6"
                 />
               </div>
             </div>
-          </CardContent>
+          </div>
 
-          <CardFooter className="flex justify-between">
-            <Link href="/trips">
-              <Button type="button" variant="outline">취소</Button>
+          <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+            <Link href="/trips" className="w-full md:w-auto">
+              <Button type="button" variant="ghost" className="w-full md:w-auto h-14 px-10 rounded-2xl font-bold text-muted-foreground hover:text-rose-500">
+                취소하기
+              </Button>
             </Link>
             <Button
               type="submit"
-              className="bg-rose-600 hover:bg-rose-700"
+              className="w-full md:w-auto h-16 px-12 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-rose-200 transition-all hover:scale-105 active:scale-95"
               disabled={loading}
             >
-              {loading ? '생성 중...' : '여행 만들기'}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                  계획 세우는 중...
+                </div>
+              ) : '우리의 여행 만들기'}
             </Button>
-          </CardFooter>
+          </div>
         </form>
-      </Card>
+      </motion.div>
     </div>
   )
 }
