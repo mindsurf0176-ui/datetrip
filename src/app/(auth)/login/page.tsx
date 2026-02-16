@@ -9,7 +9,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
-import { Heart, AlertCircle, Sparkles, Eye } from 'lucide-react'
+import { Heart, AlertCircle,  Eye } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')

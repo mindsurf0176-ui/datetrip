@@ -18,7 +18,6 @@ import {
   Settings, 
   ChevronRight,
   Sparkles,
-  Users,
   Mail
 } from 'lucide-react'
 
