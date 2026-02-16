@@ -8,9 +8,11 @@ interface AuthContextType {
   user: User | null
   couple: Couple | null
   loading: boolean
+  isGuest: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  loginAsGuest: () => void
   refreshCouple: () => Promise<void>
 }
 
@@ -20,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [couple, setCouple] = useState<Couple | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isGuest, setIsGuest] = useState(false)
 
   useEffect(() => {
     // 현재 세션 확인
@@ -128,6 +131,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut()
     setUser(null)
     setCouple(null)
+    setIsGuest(false)
+  }
+
+  const loginAsGuest = () => {
+    setIsGuest(true)
+    setUser({
+      id: 'guest',
+      email: 'guest@datetrip.app',
+      name: '게스트',
+      created_at: new Date().toISOString(),
+    } as User)
+    setLoading(false)
   }
 
   const refreshCouple = async () => {
@@ -142,9 +157,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         couple,
         loading,
+        isGuest,
         signIn,
         signUp,
         signOut,
+        loginAsGuest,
         refreshCouple,
       }}
     >

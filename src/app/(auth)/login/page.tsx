@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, loginAsGuest } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,6 +90,18 @@ export default function LoginPage() {
               disabled={loading}
             >
               {loading ? '로그인 중...' : '로그인'}
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                loginAsGuest()
+                router.push('/')
+              }}
+            >
+              게스트로 둘러보기
             </Button>
             
             <p className="text-sm text-center text-gray-600">
