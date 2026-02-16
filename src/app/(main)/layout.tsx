@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { KakaoMapProvider } from '@/components/KakaoMapProvider'
-import { motion } from 'framer-motion'
-import { LogOut, User, Heart, Plus, Calendar, Camera } from 'lucide-react'
+import { LogOut, User, MapPin, Plus, Calendar, Settings, Search } from 'lucide-react'
 
 export default function MainLayout({
   children,
@@ -15,63 +14,78 @@ export default function MainLayout({
   const { user, signOut, isGuest } = useAuth()
 
   return (
-    <div className="min-h-screen bg-gradient-romantic">
-      {/* Navigation */}
-      <nav className="fixed top-6 left-0 right-0 z-50 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-glass rounded-[2rem] border border-white/40 shadow-2xl shadow-rose-100/50 px-6 md:px-10 h-20 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation - Triple Style */}
+      <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="h-16 flex items-center justify-between">
+            {/* Logo */}
             <div className="flex items-center">
-              <Link href="/" className="flex items-center gap-3 group">
-                <motion.div 
-                  whileHover={{ scale: 1.1, rotate: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-11 h-11 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200 group-hover:shadow-rose-300 transition-all"
-                >
-                  <Heart className="w-6 h-6 text-white fill-white" />
-                </motion.div>
-                <span className="text-2xl font-black text-gradient hidden sm:block">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="w-9 h-9 gradient-violet rounded-xl flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900">
                   DateTrip
                 </span>
               </Link>
             </div>
             
-            <div className="flex items-center gap-2 md:gap-4">
+            {/* Desktop Nav */}
+            <div className="hidden md:flex items-center gap-1">
+              <Link href="/">
+                <Button variant="ghost" className="rounded-xl text-gray-600 hover:text-violet-600 hover:bg-violet-50">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  홈
+                </Button>
+              </Link>
+              <Link href="/trips">
+                <Button variant="ghost" className="rounded-xl text-gray-600 hover:text-violet-600 hover:bg-violet-50">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  내 여행
+                </Button>
+              </Link>
+              <Link href="/trips/new">
+                <Button className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white ml-2">
+                  <Plus className="w-4 h-4 mr-2" />
+                  여행 만들기
+                </Button>
+              </Link>
+            </div>
+            
+            {/* User Menu */}
+            <div className="flex items-center gap-2">
               {user ? (
                 <>
-                  <div className="flex items-center gap-3 bg-white/40 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/40">
-                    {isGuest ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center">
-                          <User className="w-4 h-4 text-slate-500" />
-                        </div>
-                        <span className="text-sm font-black text-slate-600">GUEST</span>
+                  <div className="hidden md:flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
+                      <div className="w-6 h-6 bg-violet-100 rounded-full flex items-center justify-center">
+                        <User className="w-3.5 h-3.5 text-violet-600" />
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-rose-400 to-pink-400 rounded-xl flex items-center justify-center text-white shadow-md">
-                          <Heart className="w-4 h-4 fill-white" />
-                        </div>
-                        <span className="text-sm font-black text-foreground/80">
-                          {user.name}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <span className="text-sm font-medium text-gray-700">
+                        {isGuest ? '게스트' : user.name}
+                      </span>
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={signOut}
-                      className="w-12 h-12 rounded-2xl text-muted-foreground hover:text-rose-500 hover:bg-rose-50/50 transition-all border border-transparent hover:border-rose-100"
+                      className="w-9 h-9 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                     >
-                      <LogOut className="w-5 h-5" />
+                      <LogOut className="w-4 h-4" />
                     </Button>
-                  </motion.div>
+                  </div>
+                  
+                  {/* Mobile User */}
+                  <div className="md:hidden flex items-center gap-2">
+                    <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-violet-600" />
+                    </div>
+                  </div>
                 </>
               ) : (
                 <Link href="/login">
-                  <Button className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl px-8 h-12 font-black shadow-lg shadow-rose-200">
+                  <Button className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white">
                     시작하기
                   </Button>
                 </Link>
@@ -82,35 +96,39 @@ export default function MainLayout({
       </nav>
 
       {/* Main Content */}
-      <main className="pt-32 pb-20">
+      <main className="min-h-[calc(100vh-64px)]">
         <KakaoMapProvider>{children}</KakaoMapProvider>
       </main>
 
-      {/* Mobile Tab Bar (Optional but nice) */}
-      <div className="md:hidden fixed bottom-6 left-6 right-6 z-50">
-        <div className="bg-glass rounded-[2rem] border border-white/40 shadow-2xl shadow-rose-100/50 h-16 flex items-center justify-around px-4">
-          <Link href="/" className="p-3 text-rose-500 hover:scale-110 transition-transform">
-             <div className="flex flex-col items-center">
-               <Heart className="w-6 h-6 fill-rose-500" />
-             </div>
+      {/* Mobile Tab Bar - Triple Style */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 safe-area-pb">
+        <div className="flex items-center justify-around h-16">
+          <Link href="/" className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-violet-600">
+            <Search className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 font-medium">홈</span>
           </Link>
-          <Link href="/trips" className="p-3 text-muted-foreground hover:text-rose-500 hover:scale-110 transition-transform">
-             <div className="flex flex-col items-center">
-               <Calendar className="w-6 h-6" />
-             </div>
+          <Link href="/trips" className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-violet-600">
+            <Calendar className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 font-medium">내 여행</span>
           </Link>
-          <Link href="/trips/new" className="p-3 text-muted-foreground hover:text-rose-500 hover:scale-110 transition-transform">
-             <div className="flex flex-col items-center">
-               <div className="w-10 h-10 bg-rose-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-rose-200 -mt-2">
-                 <Plus className="w-6 h-6" />
-               </div>
-             </div>
+          <Link href="/trips/new" className="flex flex-col items-center justify-center w-full h-full">
+            <div className="w-12 h-12 gradient-violet rounded-full flex items-center justify-center -mt-4 shadow-lg shadow-violet-200">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
           </Link>
-          <div className="p-3 text-muted-foreground/30"><Camera className="w-6 h-6" /></div>
-          <div className="p-3 text-muted-foreground/30"><User className="w-6 h-6" /></div>
+          <button className="flex flex-col items-center justify-center w-full h-full text-gray-400">
+            <MapPin className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 font-medium">지도</span>
+          </button>
+          <button className="flex flex-col items-center justify-center w-full h-full text-gray-400">
+            <Settings className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 font-medium">설정</span>
+          </button>
         </div>
       </div>
+      
+      {/* Mobile Bottom Padding */}
+      <div className="md:hidden h-16" />
     </div>
   )
 }
-

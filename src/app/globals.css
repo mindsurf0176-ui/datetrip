@@ -2,80 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
-
-
 @layer base {
   :root {
-    --background: 330 100% 99%;
-    --foreground: 330 40% 15%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 330 40% 15%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 330 40% 15%;
-    --primary: 330 80% 65%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 263 70% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 330 100% 96%;
-    --secondary-foreground: 330 80% 45%;
-    --muted: 330 20% 96%;
-    --muted-foreground: 330 15% 45%;
-    --accent: 330 100% 94%;
-    --accent-foreground: 330 80% 45%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 330 30% 92%;
-    --input: 330 30% 92%;
-    --ring: 330 80% 65%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 263 70% 50%;
     --radius: 1rem;
-    --chart-1: 330 80% 65%;
-    --chart-2: 340 70% 55%;
-    --chart-3: 320 60% 75%;
-    --chart-4: 310 50% 85%;
-    --chart-5: 350 90% 60%;
+    --chart-1: 263 70% 50%;
+    --chart-2: 270 60% 55%;
+    --chart-3: 280 50% 60%;
+    --chart-4: 250 65% 45%;
+    --chart-5: 290 55% 52%;
   }
   .dark {
-    --background: 330 40% 5%;
-    --foreground: 330 10% 95%;
-    --card: 330 40% 8%;
-    --card-foreground: 330 10% 95%;
-    --popover: 330 40% 8%;
-    --popover-foreground: 330 10% 95%;
-    --primary: 330 80% 65%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263 70% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 330 40% 15%;
-    --secondary-foreground: 330 80% 75%;
-    --muted: 330 20% 15%;
-    --muted-foreground: 330 10% 65%;
-    --accent: 330 40% 18%;
-    --accent-foreground: 330 80% 75%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 330 30% 18%;
-    --input: 330 30% 18%;
-    --ring: 330 80% 65%;
-  }
-}
-
-@layer utilities {
-  .bg-glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
-  }
-  .dark .bg-glass {
-    @apply bg-black/40 backdrop-blur-md border border-white/10;
-  }
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-400;
-  }
-  .bg-gradient-romantic {
-    @apply bg-gradient-to-br from-rose-50 to-pink-50;
-  }
-  .dark .bg-gradient-romantic {
-    @apply bg-gradient-to-br from-rose-950/20 to-pink-950/20;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 263 70% 60%;
   }
 }
 
@@ -84,6 +58,90 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground bg-gradient-romantic min-h-screen;
+    @apply bg-white text-foreground antialiased;
   }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Triple Style Card */
+  .card-triple {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100;
+  }
+  
+  .card-triple-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  /* Primary Color Utilities */
+  .bg-primary-violet {
+    @apply bg-violet-600;
+  }
+  
+  .text-primary-violet {
+    @apply text-violet-600;
+  }
+  
+  .border-primary-violet {
+    @apply border-violet-600;
+  }
+  
+  .ring-primary-violet {
+    @apply ring-violet-600;
+  }
+  
+  /* Gradient */
+  .gradient-violet {
+    @apply bg-gradient-to-br from-violet-600 to-purple-700;
+  }
+  
+  /* Search Input */
+  .search-input {
+    @apply w-full h-12 pl-12 pr-4 bg-gray-100 border-0 rounded-2xl text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-violet-600/20 focus:bg-white transition-all;
+  }
+  
+  /* Tab Style */
+  .tab-triple {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-all;
+  }
+  
+  .tab-triple-active {
+    @apply bg-violet-600 text-white;
+  }
+  
+  .tab-triple-inactive {
+    @apply text-gray-500 hover:text-gray-700 hover:bg-gray-100;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

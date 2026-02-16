@@ -9,25 +9,22 @@ import { useAuth } from '@/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Trip, ScheduleItem } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DayTimeline } from '@/components/DayTimeline'
 import { KakaoMap } from '@/components/KakaoMap'
 import { PlaceSearchDialog } from '@/components/PlaceSearchDialog'
 import { ScheduleEditDialog } from '@/components/ScheduleEditDialog'
-import { Calendar } from '@/components/Calendar'
 import { 
   ArrowLeft, 
-  Calendar as CalendarIcon, 
+  Calendar, 
   MapPin, 
   Plus, 
-  Navigation, 
-  CalendarDays, 
+  Navigation,
   Map as MapIcon,
-  Sparkles,
-  Heart,
   RefreshCw,
-  LayoutGrid,
-  List
+  List,
+  ChevronLeft,
+  ChevronRight,
+  Clock
 } from 'lucide-react'
 import { KakaoMapProvider } from '@/components/KakaoMapProvider'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -36,7 +33,6 @@ export default function TripDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const tripId = params.id as string
 
   const [trip, setTrip] = useState<Trip | null>(null)
@@ -44,9 +40,9 @@ export default function TripDetailPage() {
   const [loading, setLoading] = useState(true)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<'timeline' | 'map'>('timeline')
+  const [activeDayIndex, setActiveDayIndex] = useState(0)
   const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null)
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('list')
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing'>('synced')
 
   const fetchTrip = useCallback(async () => {
@@ -81,7 +77,6 @@ export default function TripDetailPage() {
     }
   }, [tripId])
 
-  // Initial data fetch
   useEffect(() => {
     if (tripId) {
       Promise.all([fetchTrip(), fetchScheduleItems()]).then(() => {
@@ -90,7 +85,6 @@ export default function TripDetailPage() {
     }
   }, [tripId, fetchTrip, fetchScheduleItems])
 
-  // Real-time subscription
   useEffect(() => {
     if (!tripId) return
 
@@ -106,14 +100,12 @@ export default function TripDetailPage() {
         },
         (payload: { eventType: string; new: Record<string, unknown>; old: { id: string } }) => {
           setSyncStatus('syncing')
-          console.log('Real-time update:', payload)
-          
           if (payload.eventType === 'INSERT') {
-            setScheduleItems((prev) => [...prev, (payload.new as unknown) as ScheduleItem])
+            setScheduleItems((prev) => [...prev, payload.new as unknown as ScheduleItem])
           } else if (payload.eventType === 'UPDATE') {
             setScheduleItems((prev) =>
               prev.map((item) =>
-                item.id === payload.new.id ? ((payload.new as unknown) as ScheduleItem) : item
+                item.id === (payload.new as unknown as ScheduleItem).id ? payload.new as unknown as ScheduleItem : item
               )
             )
           } else if (payload.eventType === 'DELETE') {
@@ -121,7 +113,6 @@ export default function TripDetailPage() {
               prev.filter((item) => item.id !== payload.old.id)
             )
           }
-          
           setTimeout(() => setSyncStatus('synced'), 500)
         }
       )
@@ -156,8 +147,9 @@ export default function TripDetailPage() {
     latitude: number
     longitude: number
   }) => {
-    if (!user || !selectedDate) return
+    if (!user || !trip) return
 
+    const selectedDate = tripDates[activeDayIndex]
     const itemsForDate = getItemsByDate(selectedDate)
     const maxOrder = itemsForDate.length > 0 
       ? Math.max(...itemsForDate.map(i => i.order_index)) 
@@ -179,7 +171,7 @@ export default function TripDetailPage() {
         })
 
       if (error) throw error
-      // Real-time subscription will update the UI
+      setIsSearchOpen(false)
     } catch (error) {
       console.error('Error adding place:', error)
       alert('장소 추가에 실패했습니다.')
@@ -214,7 +206,6 @@ export default function TripDetailPage() {
         .eq('id', id)
 
       if (error) throw error
-      // Real-time subscription will update the UI
     } catch (error) {
       console.error('Error deleting:', error)
       alert('삭제에 실패했습니다.')
@@ -238,24 +229,21 @@ export default function TripDetailPage() {
         .eq('id', updatedItem.id)
 
       if (error) throw error
-      // Real-time subscription will update the UI
+      setIsEditOpen(false)
+      setEditingItem(null)
     } catch (error) {
       console.error('Error updating:', error)
       alert('수정에 실패했습니다.')
     }
   }
 
-  const openSearch = (date: string) => {
-    setSelectedDate(date)
-    setIsSearchOpen(true)
-  }
-
-  const handleCalendarSelect = (date: string) => {
-    setSelectedDate(date)
-    // Scroll to the date section
-    const element = document.getElementById(`date-${date}`)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
+  const handleDayChange = (direction: 'prev' | 'next') => {
+    if (!trip) return
+    const totalDays = tripDates.length
+    if (direction === 'prev' && activeDayIndex > 0) {
+      setActiveDayIndex(prev => prev - 1)
+    } else if (direction === 'next' && activeDayIndex < totalDays - 1) {
+      setActiveDayIndex(prev => prev + 1)
     }
   }
 
@@ -263,24 +251,24 @@ export default function TripDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <motion.div 
-          animate={{ scale: [1, 1.2, 1] }}
+          animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-rose-400"
+          className="w-12 h-12 gradient-violet rounded-2xl flex items-center justify-center"
         >
-          <Heart className="w-16 h-16 fill-rose-400" />
+          <Navigation className="w-6 h-6 text-white" />
         </motion.div>
-        <p className="text-rose-400 font-bold">우리의 여행 지도를 그리는 중...</p>
+        <p className="text-gray-400 font-medium">여행 정보를 불러오는 중...</p>
       </div>
     )
   }
 
   if (!trip) {
     return (
-      <div className="max-w-md mx-auto text-center py-20 bg-glass rounded-[2rem] border border-white">
-        <Heart className="w-16 h-16 text-rose-300 mx-auto mb-6" />
-        <h2 className="text-2xl font-black mb-4">여행을 찾을 수 없어요</h2>
+      <div className="max-w-md mx-auto text-center py-20">
+        <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-6" />
+        <h2 className="text-xl font-bold mb-4">여행을 찾을 수 없어요</h2>
         <Link href="/trips">
-          <Button className="bg-rose-500 hover:bg-rose-600 rounded-2xl h-12 px-8 font-bold">
+          <Button className="bg-violet-600 hover:bg-violet-700 rounded-xl h-12 px-8">
             목록으로 돌아가기
           </Button>
         </Link>
@@ -289,318 +277,271 @@ export default function TripDetailPage() {
   }
 
   const tripDates = getDatesBetween(trip.start_date, trip.end_date)
-  const datesWithItems = tripDates.filter(date => getItemsByDate(date).length > 0)
+  const selectedDate = tripDates[activeDayIndex]
+  const currentItems = getItemsByDate(selectedDate)
   const mapPlaces = scheduleItems
     .filter((item) => item.latitude && item.longitude)
     .map((item) => ({
       ...item,
-      id: item.id,
-      place_name: item.place_name,
       latitude: item.latitude!,
       longitude: item.longitude!,
-      visit_date: item.visit_date,
-      place_address: item.place_address,
-      place_phone: item.place_phone,
-      visit_time: item.visit_time,
-      memo: item.memo,
     }))
 
   return (
     <KakaoMapProvider>
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
-        {/* Back Button & Sync Status */}
-        <motion.div 
-          initial={{ opacity: 0, x: -10 }} 
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center justify-between"
-        >
-          <Link href="/trips">
-            <Button variant="ghost" className="text-muted-foreground hover:text-rose-500 font-bold group">
-              <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-              나의 여행 목록
-            </Button>
-          </Link>
-          
-          <div className="flex items-center gap-2">
-            <RefreshCw 
-              className={`w-4 h-4 ${syncStatus === 'syncing' ? 'animate-spin text-rose-500' : 'text-green-500'}`} 
-            />
-            <span className="text-xs font-bold text-muted-foreground">
-              {syncStatus === 'syncing' ? '동기화 중...' : '동기화 완료'}
-            </span>
-          </div>
-        </motion.div>
-
-        {/* Trip Hero Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 rounded-[3rem] p-10 text-white shadow-2xl shadow-rose-200"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 text-rose-100 font-bold text-sm uppercase tracking-widest mb-4">
-              <Sparkles className="w-4 h-4 fill-rose-100" />
-              Travel Itinerary
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight">{trip.title}</h1>
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
-                <MapPin className="w-6 h-6 text-rose-100" />
-                <span className="text-xl font-bold">{trip.destination}</span>
+      <div className="min-h-screen pb-20">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-100 px-4 py-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center gap-3">
+              <Link href="/trips">
+                <Button variant="ghost" size="icon" className="w-9 h-9 rounded-xl">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-bold text-gray-900 truncate">{trip.title}</h1>
+                <p className="text-sm text-gray-500">{trip.destination}</p>
               </div>
-              <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
-                <CalendarDays className="w-6 h-6 text-rose-100" />
-                <span className="text-xl font-bold">
-                  {new Date(trip.start_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} - {new Date(trip.end_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
-                </span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        <Tabs defaultValue="timeline" className="w-full space-y-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <TabsList className="bg-glass p-1.5 rounded-[1.5rem] border border-white shadow-lg h-16 flex w-full max-w-md">
-              <TabsTrigger 
-                value="timeline" 
-                className="flex-1 rounded-[1.2rem] data-[state=active]:bg-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-black text-lg transition-all"
-              >
-                <CalendarIcon className="w-5 h-5 mr-2" />
-                일정 보기
-              </TabsTrigger>
-              <TabsTrigger 
-                value="map" 
-                className="flex-1 rounded-[1.2rem] data-[state=active]:bg-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-black text-lg transition-all"
-              >
-                <MapIcon className="w-5 h-5 mr-2" />
-                지도 보기
-              </TabsTrigger>
-            </TabsList>
-
-            {/* View Mode Toggle */}
-            <div className="flex bg-glass rounded-2xl p-1 border border-white shadow-lg">
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className={`rounded-xl font-bold ${viewMode === 'list' ? 'bg-rose-500 text-white' : 'text-muted-foreground'}`}
-              >
-                <List className="w-4 h-4 mr-2" />
-                리스트
-              </Button>
-              <Button
-                variant={viewMode === 'calendar' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('calendar')}
-                className={`rounded-xl font-bold ${viewMode === 'calendar' ? 'bg-rose-500 text-white' : 'text-muted-foreground'}`}
-              >
-                <LayoutGrid className="w-4 h-4 mr-2" />
-                캘린더
-              </Button>
-            </div>
-          </div>
-
-          {/* Timeline View */}
-          <TabsContent value="timeline" className="space-y-8">
-            <AnimatePresence mode="wait">
-              {viewMode === 'calendar' ? (
-                <motion.div
-                  key="calendar"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8"
-                >
-                  <Calendar
-                    selectedDate={selectedDate}
-                    onSelectDate={handleCalendarSelect}
-                    highlightDates={datesWithItems}
-                    startDate={trip.start_date}
-                    endDate={trip.end_date}
-                  />
-
-                  <div className="space-y-8">
-                    {tripDates.map((date, index) => {
-                      const items = getItemsByDate(date)
-                      return (
-                        <motion.div 
-                          key={date}
-                          id={`date-${date}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="space-y-4"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="bg-rose-500 text-white w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg shadow-rose-100">
-                              <span className="text-xs uppercase leading-none mb-0.5">Day</span>
-                              <span className="text-lg leading-none">{index + 1}</span>
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-black text-foreground">
-                                {new Date(date).toLocaleDateString('ko-KR', { weekday: 'long', month: 'long', day: 'numeric' })}
-                              </h3>
-                              <p className="text-sm text-muted-foreground font-semibold">
-                                {items.length}개의 일정
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="pl-16 space-y-3">
-                            <DayTimeline
-                              date={date}
-                              items={items}
-                              onReorder={handleReorder}
-                              onDelete={handleDelete}
-                              onEdit={handleEdit}
-                            />
-                            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                              <Button
-                                variant="outline"
-                                className="w-full h-14 rounded-2xl border-2 border-dashed border-rose-200 hover:border-rose-400 hover:bg-rose-50 transition-all font-bold text-rose-500 gap-2"
-                                onClick={() => openSearch(date)}
-                              >
-                                <Plus className="w-5 h-5" />
-                                장소 추가하기
-                              </Button>
-                            </motion.div>
-                          </div>                        
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="list"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8"
-                >
-                  {tripDates.map((date, index) => {
-                    const items = getItemsByDate(date)
-                    return (
-                      <motion.div 
-                        key={date}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="space-y-6"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="bg-rose-500 text-white w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg shadow-rose-100">
-                            <span className="text-xs uppercase leading-none mb-1">Day</span>
-                            <span className="text-xl leading-none">{index + 1}</span>
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-black text-foreground">
-                              {new Date(date).toLocaleDateString('ko-KR', { weekday: 'long', month: 'long', day: 'numeric' })}
-                            </h3>
-                          </div>
-                        </div>
-
-                        <div className="ml-7 pl-10 border-l-2 border-dashed border-rose-200 space-y-4">
-                          <DayTimeline
-                            date={date}
-                            items={items}
-                            onReorder={handleReorder}
-                            onDelete={handleDelete}
-                            onEdit={handleEdit}
-                          />
-                          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                            <Button
-                              variant="outline"
-                              className="w-full h-16 rounded-[2rem] border-2 border-dashed border-rose-200 hover:border-rose-400 hover:bg-rose-50 transition-all font-black text-rose-500 gap-2 text-lg"
-                              onClick={() => openSearch(date)}
-                            >
-                              <Plus className="w-6 h-6" />
-                              장소 추가하기
-                            </Button>
-                          </motion.div>
-                        </div>
-                      </motion.div>
-                    )
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </TabsContent>
-
-          {/* Map View */}
-          <TabsContent value="map">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-8"
-            >
-              <div className="rounded-[3rem] overflow-hidden shadow-2xl shadow-rose-100 border-4 border-white relative">
-                <KakaoMap
-                  places={mapPlaces}
-                  height="600px"
-                  showPolyline={true}
-                  selectedDate={selectedDate}
+              <div className="flex items-center gap-2">
+                <RefreshCw 
+                  className={`w-4 h-4 ${syncStatus === 'syncing' ? 'animate-spin text-violet-600' : 'text-gray-300'}`} 
                 />
               </div>
+            </div>
+          </div>
+        </div>
 
-              {/* Date Filter for Map */}
-              <div className="flex flex-wrap gap-2 justify-center">
-                <Button
-                  variant={selectedDate === '' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedDate('')}
-                  className={`rounded-full font-bold ${selectedDate === '' ? 'bg-rose-500 text-white' : 'border-rose-200'}`}
-                >
-                  전체 보기
-                </Button>
-                {tripDates.map((date, index) => {
-                  const hasItems = getItemsByDate(date).length > 0
-                  return (
-                    <Button
-                      key={date}
-                      variant={selectedDate === date ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedDate(date)}
-                      className={`rounded-full font-bold ${
-                        selectedDate === date 
-                          ? 'bg-rose-500 text-white' 
-                          : hasItems 
-                            ? 'border-rose-300 text-rose-600' 
-                            : 'border-gray-200 text-gray-400'
-                      }`}
-                    >
-                      Day {index + 1}
-                    </Button>
-                  )
-                })}
+        {/* Trip Info Card */}
+        <div className="bg-gradient-to-br from-violet-500 to-purple-600 text-white">
+          <div className="max-w-5xl mx-auto px-4 py-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                <Calendar className="w-7 h-7" />
               </div>
+              <div>
+                <p className="text-violet-100 text-sm">여행 기간</p>
+                <p className="text-xl font-bold">
+                  {new Date(trip.start_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })} - {new Date(trip.end_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                </p>
+                <p className="text-violet-100 text-sm mt-0.5">
+                  {tripDates.length}일 일정
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(selectedDate ? getItemsByDate(selectedDate) : scheduleItems)
-                  .filter(item => item.latitude && item.longitude)
-                  .map((place, index) => (
+        {/* Tab Navigation */}
+        <div className="bg-white border-b border-gray-100 sticky top-16 z-30">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="flex gap-1">
+              <button
+                onClick={() => setActiveTab('timeline')}
+                className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'timeline' 
+                    ? 'border-violet-600 text-violet-600' 
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <List className="w-4 h-4" />
+                  일정
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('map')}
+                className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'map' 
+                    ? 'border-violet-600 text-violet-600' 
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <MapIcon className="w-4 h-4" />
+                  지도
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <AnimatePresence mode="wait">
+            {activeTab === 'timeline' ? (
+              <motion.div
+                key="timeline"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                {/* Day Navigation */}
+                <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-gray-100">
+                  <button
+                    onClick={() => handleDayChange('prev')}
+                    disabled={activeDayIndex === 0}
+                    className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-violet-600">Day {activeDayIndex + 1}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(selectedDate).toLocaleDateString('ko-KR', { 
+                        month: 'long', 
+                        day: 'numeric',
+                        weekday: 'short'
+                      })}
+                    </p>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleDayChange('next')}
+                    disabled={activeDayIndex === tripDates.length - 1}
+                    className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Day Tabs */}
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+                  {tripDates.map((date, idx) => {
+                    const items = getItemsByDate(date)
+                    return (
+                      <button
+                        key={date}
+                        onClick={() => setActiveDayIndex(idx)}
+                        className={`flex-shrink-0 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                          activeDayIndex === idx
+                            ? 'bg-violet-600 text-white'
+                            : 'bg-white text-gray-600 border border-gray-100 hover:border-violet-200'
+                        }`}
+                      >
+                        <div className="text-center">
+                          <p className="font-bold">Day {idx + 1}</p>
+                          <p className={`text-xs mt-0.5 ${activeDayIndex === idx ? 'text-violet-200' : 'text-gray-400'}`}>
+                            {items.length}곳
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Timeline */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-gray-900">
+                      일정 {currentItems.length > 0 && `(${currentItems.length})`}
+                    </h3>
+                    <Button 
+                      onClick={() => setIsSearchOpen(true)}
+                      className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl h-10"
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      장소 추가
+                    </Button>
+                  </div>
+
+                  <DayTimeline
+                    date={selectedDate}
+                    items={currentItems}
+                    onReorder={handleReorder}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                  />
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="map"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                {/* Map */}
+                <div className="rounded-2xl overflow-hidden border border-gray-100">
+                  <KakaoMap
+                    places={mapPlaces}
+                    height="400px"
+                    showPolyline={true}
+                    selectedDate={selectedDate}
+                  />
+                </div>
+
+                {/* Date Filter */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setActiveDayIndex(0)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      activeDayIndex === 0 && activeTab === 'map'
+                        ? 'bg-violet-600 text-white' 
+                        : 'bg-white border border-gray-200 text-gray-600 hover:border-violet-300'
+                    }`}
+                  >
+                    전첳 보기
+                  </button>
+                  {tripDates.map((date, idx) => {
+                    const hasItems = getItemsByDate(date).length > 0
+                    return (
+                      <button
+                        key={date}
+                        onClick={() => setActiveDayIndex(idx)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                          activeDayIndex === idx
+                            ? 'bg-violet-600 text-white' 
+                            : hasItems
+                              ? 'bg-violet-50 text-violet-600 border border-violet-200'
+                              : 'bg-white border border-gray-200 text-gray-400'
+                        }`}
+                      >
+                        Day {idx + 1}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Place List for Map */}
+                <div className="space-y-3">
+                  <h3 className="font-bold text-gray-900">장소 목록</h3>
+                  
+                  {(activeDayIndex === 0 && activeTab === 'map' 
+                    ? scheduleItems 
+                    : currentItems
+                  ).filter(item => item.latitude && item.longitude)
+                    .map((place, index) => (
                     <motion.div
                       key={place.id}
-                      whileHover={{ y: -5 }}
-                      className="flex items-center gap-5 p-5 bg-glass rounded-[2rem] border border-white shadow-xl shadow-rose-100/50"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="card-triple p-4 flex items-center gap-4"
                     >
-                      <div className="bg-rose-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black shadow-lg shadow-rose-200 flex-shrink-0">
+                      <div className="w-10 h-10 gradient-violet rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         {index + 1}
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-black text-foreground truncate">{place.place_name}</p>
-                        <p className="text-sm text-muted-foreground font-semibold flex items-center gap-1">
-                          <Navigation className="w-3 h-3" />
-                          Day {tripDates.indexOf(place.visit_date) + 1}
-                        </p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 truncate">{place.place_name}</p>
+                        <p className="text-sm text-gray-500 truncate">{place.place_address}</p>
                       </div>
+                      {place.visit_time && (
+                        <div className="flex items-center gap-1 text-sm text-violet-600">
+                          <Clock className="w-4 h-4" />
+                          {place.visit_time.slice(0, 5)}
+                        </div>
+                      )}
                     </motion.div>
                   ))}
-              </div>
-            </motion.div>
-          </TabsContent>
-        </Tabs>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <PlaceSearchDialog
           isOpen={isSearchOpen}

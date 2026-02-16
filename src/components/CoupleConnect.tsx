@@ -5,9 +5,8 @@ import { useAuth } from '@/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Heart, Loader2 } from 'lucide-react'
+import { Heart, Loader2, Copy, Check, Users } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function CoupleConnect() {
   const { user, couple, refreshCouple } = useAuth()
@@ -15,8 +14,9 @@ export default function CoupleConnect() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create')
 
-  // 초대 코드 생성
   const generateInviteCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     let code = ''
@@ -26,7 +26,6 @@ export default function CoupleConnect() {
     return code
   }
 
-  // 커플 생성 (초대 코드 생성)
   const handleCreateCouple = async () => {
     if (!user) return
     
@@ -49,7 +48,7 @@ export default function CoupleConnect() {
       if (insertError) throw insertError
 
       await refreshCouple()
-      setSuccess(`초대 코드가 생성되었습니다: ${code}`)
+      setSuccess('초대 코드가 생성되었습니다')
     } catch (err: Error | unknown) {
       const message = err instanceof Error ? err.message : '커플 생성에 실패했습니다.'
       setError(message)
@@ -58,7 +57,6 @@ export default function CoupleConnect() {
     }
   }
 
-  // 커플 연결 (초대 코드 입력)
   const handleJoinCouple = async () => {
     if (!user || !inviteCode.trim()) return
     
@@ -67,7 +65,6 @@ export default function CoupleConnect() {
     setSuccess('')
 
     try {
-      // 초대 코드로 커플 찾기
       const { data: coupleData, error: findError } = await supabase
         .from('couples')
         .select('*')
@@ -92,7 +89,6 @@ export default function CoupleConnect() {
         return
       }
 
-      // 커플 연결
       const { error: updateError } = await supabase
         .from('couples')
         .update({ user2_id: user.id })
@@ -110,131 +106,205 @@ export default function CoupleConnect() {
     }
   }
 
-  // 이미 커플이 연결된 경우
+  const copyCode = () => {
+    if (couple?.invite_code) {
+      navigator.clipboard.writeText(couple.invite_code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   if (couple?.user2_id) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-rose-600 flex items-center gap-2">
-            <Heart className="w-5 h-5 fill-rose-600" />
-            커플 연결 완료
-          </CardTitle>
-          <CardDescription>
-            함께 여행을 계획해 보세요
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-gray-600">
-            서로 연결되었습니다!<br />
-            이제 여행을 함께 계획할 수 있습니다.
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="card-triple p-6 text-center"
+      >
+        <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        >
+          <Users className="w-8 h-8 text-green-600" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 mb-2">커플 연결 완료</h3>
+        <p className="text-gray-500">함께 여행을 계획핳세요</p>
+      </motion.div>
     )
   }
 
-  // 커플 생성 대기 중 (초대 코드 생성됨)
   if (couple && !couple.user2_id) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-rose-600 flex items-center gap-2">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            연결 대기 중
-          </CardTitle>
-          <CardDescription>
-            파트너가 초대 코드를 입력할 때까지 기다려주세요
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 bg-rose-50 rounded-lg text-center">
-            <p className="text-sm text-gray-600 mb-2">초대 코드</p>
-            <p className="text-2xl font-bold text-rose-600 tracking-wider">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="card-triple p-6"
+      >
+        <div className="text-center mb-6"
+        >
+          <div className="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          >
+            <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-1">연결 대기 중</h3>
+          <p className="text-sm text-gray-500">파트너가 초대 코드를 입력할 때까지 기다려주세요</p>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4 text-center"
+        >
+          <p className="text-xs text-gray-400 mb-2">초대 코드</p>
+          <div className="flex items-center justify-center gap-3"
+          >
+            <p className="text-2xl font-black text-violet-600 tracking-[0.2em]"
+            >
               {couple.invite_code}
             </p>
+            <button
+              onClick={copyCode}
+              className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-100 rounded-lg transition-colors"
+            >
+              {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+            </button>
           </div>
-          <p className="text-sm text-center text-gray-500">
-            파트너에게 이 코드를 공유하세요
-          </p>
-        </CardContent>
-      </Card>
+        </div>
+
+        <p className="text-xs text-center text-gray-400 mt-4">
+          파트너에게 이 코드를 공유하세요
+        </p>
+      </motion.div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-rose-600 flex items-center gap-2">
-          <Heart className="w-5 h-5 fill-rose-600" />
-          커플 연결
-        </CardTitle>
-        <CardDescription>
-          함께 여행을 계획할 파트너를 연결하세요
-        </CardDescription>
-      </CardHeader>
-      
-      <Tabs defaultValue="create" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="create">초대 코드 생성</TabsTrigger>
-          <TabsTrigger value="join">초대 코드 입력</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="create">
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">{error}</div>
-            )}
-            {success && (
-              <div className="p-3 text-sm text-green-600 bg-green-50 rounded-md">{success}</div>
-            )}
-            <p className="text-sm text-gray-600">
-              초대 코드를 생성하여 파트너에게 공유하세요.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={handleCreateCouple}
-              className="w-full bg-rose-600 hover:bg-rose-700"
-              disabled={loading}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="card-triple overflow-hidden"
+    >
+      <div className="p-6 border-b border-gray-100"
+      >
+        <div className="flex items-center gap-3"
+        >
+          <div className="w-10 h-10 gradient-violet rounded-xl flex items-center justify-center"
+          >
+            <Heart className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900">커플 연결</h3>
+            <p className="text-sm text-gray-500">함께 여행을 계획할 파트너를 연결하세요</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6"
+        >
+          <button
+            onClick={() => setActiveTab('create')}
+            className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
+              activeTab === 'create'
+                ? 'bg-violet-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            초대 코드 생성
+          </button>
+          <button
+            onClick={() => setActiveTab('join')}
+            className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
+              activeTab === 'join'
+                ? 'bg-violet-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            초대 코드 입력
+          </button>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {activeTab === 'create' ? (
+            <motion.div
+              key="create"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="space-y-4"
             >
-              {loading ? '생성 중...' : '초대 코드 생성'}
-            </Button>
-          </CardFooter>
-        </TabsContent>
-        
-        <TabsContent value="join">
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">{error}</div>
-            )}
-            {success && (
-              <div className="p-3 text-sm text-green-600 bg-green-50 rounded-md">{success}</div>
-            )}
-            
-            <div className="space-y-2">
-              <label htmlFor="inviteCode" className="text-sm font-medium">
-                초대 코드
-              </label>
-              <Input
-                id="inviteCode"
-                placeholder="예: ABCD1234"
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                maxLength={8}
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={handleJoinCouple}
-              className="w-full bg-rose-600 hover:bg-rose-700"
-              disabled={loading || !inviteCode.trim()}
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl"
+                >{error}</div>
+              )}
+              {success && (
+                <div className="p-3 text-sm text-green-600 bg-green-50 rounded-xl"
+                >{success}</div>
+              )}
+              
+              <p className="text-sm text-gray-500"
+              >
+                초대 코드를 생성하여 파트너에게 공유하세요.
+              </p>
+              
+              <Button
+                onClick={handleCreateCouple}
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2"
+                  >
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    생성 중...
+                  </div>
+                ) : '초대 코드 생성'}
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="join"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-4"
             >
-              {loading ? '연결 중...' : '커플 연결하기'}
-            </Button>
-          </CardFooter>
-        </TabsContent>
-      </Tabs>
-    </Card>
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl"
+                >{error}</div>
+              )}
+              {success && (
+                <div className="p-3 text-sm text-green-600 bg-green-50 rounded-xl"
+                >{success}</div>
+              )}
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700"
+                >
+                  초대 코드
+                </label>
+                <Input
+                  placeholder="예: ABCD1234"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  maxLength={8}
+                  className="h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 text-center text-lg font-bold tracking-[0.2em]"
+                />
+              </div>
+              
+              <Button
+                onClick={handleJoinCouple}
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium"
+                disabled={loading || !inviteCode.trim()}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2"
+                  >
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    연결 중...
+                  </div>
+                ) : '커플 연결하기'}
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   )
 }

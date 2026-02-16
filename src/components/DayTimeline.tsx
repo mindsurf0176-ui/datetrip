@@ -17,7 +17,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, MapPin, Clock, Trash2, StickyNote, Edit2 } from 'lucide-react'
+import { GripVertical, MapPin, Clock, Trash2, StickyNote, Edit2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScheduleItem } from '@/types'
 import { motion } from 'framer-motion'
@@ -27,6 +27,24 @@ interface SortableScheduleItemProps {
   onDelete: (id: string) => void
   onEdit: (item: ScheduleItem) => void
   index: number
+}
+
+// Category icons and colors
+const getCategoryStyle = (placeName: string) => {
+  const name = placeName.toLowerCase()
+  if (name.includes('카페') || name.includes('커피')) {
+    return { color: 'bg-amber-100 text-amber-700', label: '카페', icon: 'cafe' }
+  }
+  if (name.includes('식당') || name.includes('음식점') || name.includes('맛집')) {
+    return { color: 'bg-orange-100 text-orange-700', label: '맛집', icon: 'food' }
+  }
+  if (name.includes('호텔') || name.includes('펜션') || name.includes('숙소')) {
+    return { color: 'bg-blue-100 text-blue-700', label: '숙소', icon: 'hotel' }
+  }
+  if (name.includes('공원') || name.includes('산') || name.includes('바다') || name.includes('핸')) {
+    return { color: 'bg-green-100 text-green-700', label: '자연', icon: 'nature' }
+  }
+  return { color: 'bg-violet-100 text-violet-700', label: '관광', icon: 'sight' }
 }
 
 function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableScheduleItemProps) {
@@ -45,84 +63,99 @@ function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableSchedul
     zIndex: isDragging ? 50 : 0,
   }
 
+  const category = getCategoryStyle(item.place_name)
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group ${isDragging ? 'z-50 shadow-2xl' : ''}`}
+      className={`relative ${isDragging ? 'z-50' : ''}`}
     >
       <div className={`
-        bg-glass rounded-3xl p-5 border border-white shadow-xl shadow-rose-100/30 transition-all duration-300
-        ${isDragging ? 'scale-105 border-rose-300 ring-4 ring-rose-100' : 'hover:-translate-y-1 hover:shadow-rose-200/40'}
+        bg-white rounded-2xl p-4 border border-gray-100 shadow-sm transition-all duration-200
+        ${isDragging ? 'shadow-xl scale-[1.02] ring-2 ring-violet-500' : 'hover:shadow-md'}
       `}>
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
+          {/* Drag Handle */}
           <button
             {...attributes}
             {...listeners}
-            className="mt-1 p-2 text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-grab active:cursor-grabbing shrink-0"
+            className="mt-1 p-2 text-gray-300 hover:text-gray-500 hover:bg-gray-100 rounded-xl transition-colors cursor-grab active:cursor-grabbing shrink-0"
           >
-            <GripVertical className="w-5 h-5" />
+            <GripVertical className="w-4 h-4" />
           </button>
           
+          {/* Number Badge */}
+          <div className="w-8 h-8 gradient-violet rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0">
+            {index + 1}
+          </div>
+          
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1">
-              <span className="bg-rose-100 text-rose-600 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0">
-                {index + 1}
-              </span>
-              <h4 className="font-black text-lg text-foreground truncate group-hover:text-rose-600 transition-colors">
-                {item.place_name}
-              </h4>
+            {/* Header */}
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${category.color}`}>
+                    {category.label}
+                  </span>
+                  <h4 className="font-bold text-gray-900 truncate">
+                    {item.place_name}
+                  </h4>
+                </div>
+                
+                {item.place_address && (
+                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                    <span className="truncate">{item.place_address}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEdit(item)}
+                  className="w-8 h-8 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(item.id)}
+                  className="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
             
-            <div className="space-y-1 ml-9">
-              {item.place_address && (
-                <p className="text-sm text-muted-foreground font-semibold flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                  <span className="truncate">{item.place_address}</span>
-                </p>
-              )}
-              
+            {/* Time & Memo */}
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               {item.visit_time && (
-                <p className="text-sm text-rose-500 font-bold flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 shrink-0" />
-                  {item.visit_time.slice(0, 5)}
-                </p>
+                <div className="flex items-center gap-1.5 text-sm text-violet-600 bg-violet-50 px-3 py-1.5 rounded-lg"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="font-medium">{item.visit_time.slice(0, 5)}</span>
+                </div>
               )}
               
               {item.memo && (
-                <div className="mt-3 bg-rose-50/50 backdrop-blur-sm p-3 rounded-2xl border border-rose-100 flex items-start gap-2">
-                  <StickyNote className="w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0" />
-                  <p className="text-sm text-rose-600/80 font-medium italic">
-                    &ldquo;{item.memo}&rdquo;
-                  </p>
+                <div className="flex items-center gap-1.5 text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg"
+                >
+                  <StickyNote className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="truncate max-w-[200px]">{item.memo}</span>
                 </div>
               )}
             </div>
           </div>
-
-          <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(item)}
-              className="text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl w-10 h-10 p-0"
-            >
-              <Edit2 className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(item.id)}
-              className="text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl w-10 h-10 p-0"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
         </div>
       </div>
       
-      {/* Connector line for list items */}
-      <div className="absolute left-[34px] -bottom-4 w-0.5 h-4 bg-rose-100 hidden group-last:hidden" />
+      {/* Connector Line */}
+      <div className="absolute left-[26px] -bottom-3 w-0.5 h-3 bg-gray-200" />
     </div>
   )
 }
@@ -161,17 +194,18 @@ export function DayTimeline({ items, onReorder, onDelete, onEdit }: DayTimelineP
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {items.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-glass rounded-[2rem] border-2 border-dashed border-rose-100 p-10 text-center"
+          className="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center"
         >
-          <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <PlusIcon />
+          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-8 h-8 text-gray-300" />
           </div>
-          <p className="text-muted-foreground font-bold">아직 일정이 없어요. 장소를 추가해 보세요!</p>
+          <p className="text-gray-500 font-medium">아직 일정이 없어요</p>
+          <p className="text-sm text-gray-400 mt-1">장소를 추가핳세요</p>
         </motion.div>
       ) : (
         <DndContext
@@ -183,28 +217,22 @@ export function DayTimeline({ items, onReorder, onDelete, onEdit }: DayTimelineP
             items={items.map((item) => item.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-4 pb-4">
+            <div className="space-y-3">
               {items.map((item, index) => (
-                <SortableScheduleItem
-                  key={item.id}
-                  item={item}
-                  onDelete={onDelete}
-                  onEdit={onEdit || (() => {})}
-                  index={index}
-                />
+                <div key={item.id} className="group"
+                >
+                  <SortableScheduleItem
+                    item={item}
+                    onDelete={onDelete}
+                    onEdit={onEdit || (() => {})}
+                    index={index}
+                  />
+                </div>
               ))}
             </div>
           </SortableContext>
         </DndContext>
       )}
     </div>
-  )
-}
-
-function PlusIcon() {
-  return (
-    <svg className="w-8 h-8 text-rose-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-    </svg>
   )
 }

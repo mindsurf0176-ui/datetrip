@@ -9,7 +9,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
-import { Heart } from 'lucide-react'
+import { MapPin, AlertCircle } from 'lucide-react'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
@@ -52,61 +52,57 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-romantic">
-      {/* Background elements */}
-      <div className="absolute top-[-5%] right-[-5%] w-[45%] h-[45%] bg-rose-200/20 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-[-5%] left-[-5%] w-[45%] h-[45%] bg-pink-200/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
-      
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md relative z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <Link href="/login" className="inline-block group">
-             <motion.div 
-              whileHover={{ scale: 1.1 }}
-              className="mb-4 bg-rose-100 p-4 rounded-2xl inline-flex items-center justify-center shadow-inner shadow-rose-200"
+          <Link href="/login" className="inline-block"
+          >
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="inline-flex items-center justify-center w-16 h-16 gradient-violet rounded-2xl mb-4"
             >
-              <Heart className="w-8 h-8 text-rose-500 fill-rose-500" />
+              <MapPin className="w-8 h-8 text-white" />
             </motion.div>
           </Link>
-          <h1 className="text-3xl font-black tracking-tight mb-2">
-            새로운 <span className="text-gradient">시작</span>
-          </h1>
-          <p className="text-muted-foreground font-medium text-sm">함께하는 모든 순간을 기록하세요</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">회원가입</h1>
+          <p className="text-gray-500 text-sm">DateTrip과 함께 여행을 계획핳세요</p>
         </div>
 
-        <div className="bg-glass rounded-[2.5rem] shadow-2xl shadow-rose-100/50 p-8 border border-white/40">
+        <div className="card-triple p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-3 text-sm text-rose-600 bg-rose-50/50 backdrop-blur-sm rounded-xl border border-rose-100 font-medium"
+                className="p-3 text-sm text-red-600 bg-red-50 rounded-xl flex items-center gap-2"
               >
+                <AlertCircle className="w-4 h-4" />
                 {error}
               </motion.div>
             )}
             
-            <div className="space-y-1.5">
-              <label htmlFor="name" className="text-sm font-semibold text-foreground/80 ml-1">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium text-gray-700">
                 이름
               </label>
               <Input
                 id="name"
                 type="text"
-                placeholder="어떻게 불러드릴까요?"
+                placeholder="홍길동"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="h-12 rounded-xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm transition-all"
+                className="h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500"
               />
             </div>
             
-            <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-semibold text-foreground/80 ml-1">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-gray-700">
                 이메일
               </label>
               <Input
@@ -116,13 +112,13 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-12 rounded-xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm transition-all"
+                className="h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500"
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label htmlFor="password" className="text-sm font-semibold text-foreground/80 ml-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   비밀번호
                 </label>
                 <Input
@@ -132,44 +128,44 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-12 rounded-xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm transition-all"
+                  className="h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500"
                 />
               </div>
               
-              <div className="space-y-1.5">
-                <label htmlFor="confirmPassword" className="text-sm font-semibold text-foreground/80 ml-1">
-                  확인
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                  비밀번호 확인
                 </label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="한 번 더"
+                  placeholder="확인"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="h-12 rounded-xl border-rose-100 focus:border-rose-300 focus:ring-rose-200 bg-white/50 backdrop-blur-sm transition-all"
+                  className="h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full h-14 mt-4 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl font-bold text-lg shadow-lg shadow-rose-200/50 transition-all hover:shadow-xl hover:shadow-rose-300/50 hover:-translate-y-1 active:translate-y-0"
+              className="w-full h-12 mt-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium"
               disabled={loading}
             >
               {loading ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   가입 중...
                 </div>
-              ) : '계정 만들기'}
+              ) : '회원가입'}
             </Button>
           </form>
           
-          <div className="mt-8 text-center">
-            <p className="text-muted-foreground font-medium text-sm">
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500">
               이미 계정이 있으신가요?{' '}
-              <Link href="/login" className="text-rose-500 hover:text-rose-600 font-bold hover:underline transition-all">
+              <Link href="/login" className="text-violet-600 font-medium hover:underline">
                 로그인하기
               </Link>
             </p>

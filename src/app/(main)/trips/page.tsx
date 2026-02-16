@@ -13,16 +13,50 @@ import {
   Calendar, 
   MapPin, 
   Plus, 
-  PlaneTakeoff, 
   ChevronRight,
   Search,
-  MoreHorizontal
+  Clock,
+  ArrowRight
 } from 'lucide-react'
+
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('ko-KR', {
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+function calculateDday(startDate: string): string {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const start = new Date(startDate)
+  start.setHours(0, 0, 0, 0)
+  const diffTime = start.getTime() - today.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) return 'D-Day'
+  if (diffDays < 0) return `D+${Math.abs(diffDays)}`
+  return `D-${diffDays}`
+}
+
+function getTripStatus(startDate: string, endDate: string): 'upcoming' | 'ongoing' | 'past' {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const start = new Date(startDate)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(endDate)
+  end.setHours(0, 0, 0, 0)
+  
+  if (today < start) return 'upcoming'
+  if (today > end) return 'past'
+  return 'ongoing'
+}
 
 export default function TripsPage() {
   const { couple } = useAuth()
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all')
 
   const fetchTrips = useCallback(async () => {
     if (!couple) return
@@ -49,116 +83,194 @@ export default function TripsPage() {
     }
   }, [couple, fetchTrips])
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      month: 'long',
-      day: 'numeric'
-    })
-  }
+  const filteredTrips = trips.filter(trip => {
+    if (filter === 'all') return true
+    const status = getTripStatus(trip.start_date, trip.end_date)
+    return filter === 'upcoming' ? status !== 'past' : status === 'past'
+  })
+
+  const upcomingCount = trips.filter(t => getTripStatus(t.start_date, t.end_date) !== 'past').length
+  const pastCount = trips.filter(t => getTripStatus(t.start_date, t.end_date) === 'past').length
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="w-12 h-12 border-4 border-rose-100 border-t-rose-500 rounded-full animate-spin" />
-        <p className="text-muted-foreground font-medium">추억들을 불러오는 중...</p>
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
+          <div className="w-10 h-10 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin" />
+          <p className="text-gray-400 font-medium">여행 목록을 불러오는 중...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-        <div>
-          <h1 className="text-4xl font-black mb-2 flex items-center gap-3">
-            <span className="text-gradient">우리의 여행</span>
-            <PlaneTakeoff className="w-8 h-8 text-rose-500" />
-          </h1>
-          <p className="text-muted-foreground font-medium">함께한, 그리고 함께할 모든 소중한 순간들</p>
+    <div className="min-h-screen pb-20">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 px-4 py-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">내 여행</h1>
+              <p className="text-gray-500 mt-1">총 {trips.length}개의 여행</p>
+            </div>
+            <Link href="/trips/new">
+              <Button className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl h-11 px-5">
+                <Plus className="w-4 h-4 mr-2" />
+                새 여행 만들기
+              </Button>
+            </Link>
+          </div>
         </div>
-        <Link href="/trips/new">
-          <Button className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white h-14 px-8 rounded-2xl font-bold text-lg shadow-lg shadow-rose-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
-            <Plus className="w-6 h-6" />
-            새 여행 계획하기
-          </Button>
-        </Link>
       </div>
 
-      {trips.length === 0 ? (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-glass rounded-[3rem] p-20 text-center border-2 border-dashed border-rose-200"
-        >
-          <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-8">
-            <Search className="w-12 h-12 text-rose-300" />
-          </div>
-          <h3 className="text-2xl font-black mb-4">아직 계획된 여행이 없어요</h3>
-          <p className="text-muted-foreground text-lg mb-8 max-w-sm mx-auto">
-            우리의 첫 번째 특별한 여행을<br />지금 바로 계획해 볼까요?
-          </p>
-          <Link href="/trips/new">
-            <Button className="bg-rose-500 hover:bg-rose-600 text-white rounded-2xl px-10 h-14 font-bold">
-              첫 여행 시작하기
-            </Button>
-          </Link>
-        </motion.div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatePresence>
-            {trips.map((trip, idx) => (
-              <motion.div
-                key={trip.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                whileHover={{ y: -8 }}
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        {trips.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="card-triple p-12 text-center"
+          >
+            <div className="w-20 h-20 bg-violet-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <MapPin className="w-10 h-10 text-violet-300" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">아직 여행이 없어요</h3>
+            <p className="text-gray-500 mb-6">첫 번째 특별한 여행을 계획핳세요</p>
+            <Link href="/trips/new">
+              <Button className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-8 h-12">
+                <Plus className="w-5 h-5 mr-2" />
+                여행 만들기
+              </Button>
+            </Link>
+          </motion.div>
+        ) : (
+          <>
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mb-6">
+              <button
+                onClick={() => setFilter('all')}
+                className={`tab-triple ${filter === 'all' ? 'tab-triple-active' : 'tab-triple-inactive'}`}
               >
-                <Link href={`/trips/${trip.id}`} className="group block h-full">
-                  <div className="bg-glass rounded-[2.5rem] overflow-hidden border border-white shadow-xl shadow-rose-100/50 h-full flex flex-col group-hover:shadow-2xl transition-all duration-300">
-                    {/* Card Header (Image Placeholder or Color) */}
-                    <div className="h-48 bg-gradient-to-br from-rose-100 to-pink-200 relative">
-                      <div className="absolute top-4 right-4">
-                        <div className="bg-white/50 backdrop-blur-md p-2 rounded-xl border border-white/40">
-                          <MoreHorizontal className="w-5 h-5 text-rose-500" />
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity">
-                        <MapPin className="w-20 h-20 text-rose-500" />
-                      </div>
-                    </div>
+                전체
+              </button>
+              <button
+                onClick={() => setFilter('upcoming')}
+                className={`tab-triple ${filter === 'upcoming' ? 'tab-triple-active' : 'tab-triple-inactive'}`}
+              >
+                다가오는 여행
+                <span className="ml-1.5 text-xs bg-white/20 px-1.5 py-0.5 rounded-full">
+                  {upcomingCount}
+                </span>
+              </button>
+              <button
+                onClick={() => setFilter('past')}
+                className={`tab-triple ${filter === 'past' ? 'tab-triple-active' : 'tab-triple-inactive'}`}
+              >
+                지난 여행
+                <span className="ml-1.5 text-xs bg-gray-100 px-1.5 py-0.5 rounded-full">
+                  {pastCount}
+                </span>
+              </button>
+            </div>
 
-                    {/* Card Content */}
-                    <div className="p-8 flex-1 flex flex-col">
-                      <div className="flex items-center gap-2 text-rose-500 font-bold text-sm uppercase tracking-wider mb-3">
-                        <MapPin className="w-4 h-4" />
-                        {trip.destination}
-                      </div>
-                      <h3 className="text-2xl font-black text-foreground mb-4 group-hover:text-rose-600 transition-colors">
-                        {trip.title}
-                      </h3>
-                      
-                      <div className="mt-auto space-y-3 pt-6 border-t border-rose-100/50">
-                        <div className="flex items-center gap-3 text-muted-foreground font-semibold">
-                          <Calendar className="w-5 h-5 text-rose-400" />
-                          <span>
-                            {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between pt-2">
-                          <span className="text-xs font-bold text-rose-300 uppercase tracking-widest">View Details</span>
-                          <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-all">
-                            <ChevronRight className="w-5 h-5" />
+            {/* Trip List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AnimatePresence mode="popLayout">
+                {filteredTrips.map((trip, idx) => {
+                  const status = getTripStatus(trip.start_date, trip.end_date)
+                  const dday = calculateDday(trip.start_date)
+                  
+                  return (
+                    <motion.div
+                      key={trip.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <Link href={`/trips/${trip.id}`}>
+                        <div className="card-triple card-triple-hover overflow-hidden group">
+                          {/* Card Header */}
+                          <div className="relative h-40 bg-gradient-to-br from-violet-400 to-purple-500">
+                            {/* Status Badge */}
+                            <div className="absolute top-4 left-4">
+                              {status === 'ongoing' && (
+                                <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                  여행 중
+                                </span>
+                              )}
+                              {status === 'upcoming' && (
+                                <span className="px-3 py-1 bg-white/90 text-violet-600 text-xs font-bold rounded-full">
+                                  {dday}
+                                </span>
+                              )}
+                              {status === 'past' && (
+                                <span className="px-3 py-1 bg-gray-800/70 text-white text-xs font-bold rounded-full">
+                                  완료
+                                </span>
+                              )}
+                            </div>
+                            
+                            {/* Arrow Icon */}
+                            <div className="absolute bottom-4 right-4 w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ArrowRight className="w-5 h-5 text-white" />
+                            </div>
+                          </div>
+
+                          {/* Card Content */}
+                          <div className="p-5">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 text-violet-600 text-sm font-medium mb-1">
+                                  <MapPin className="w-4 h-4" />
+                                  {trip.destination}
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-900 truncate">
+                                  {trip.title}
+                                </h3>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 mt-3 text-gray-500 text-sm">
+                              <Calendar className="w-4 h-4" />
+                              <span>
+                                {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                              </span>
+                            </div>
+
+                            {/* Trip Duration */}
+                            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                              <div className="flex items-center gap-1 text-sm text-gray-500">
+                                <Clock className="w-4 h-4" />
+                                <span>
+                                  {Math.ceil((new Date(trip.end_date).getTime() - new Date(trip.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1}일 일정
+                                </span>
+                              </div>
+                              <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-violet-600 transition-colors" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                      </Link>
+                    </motion.div>
+                  )
+                })}
+              </AnimatePresence>
+            </div>
+
+            {filteredTrips.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12"
+              >
+                <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">해당하는 여행이 없습니다</p>
               </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }

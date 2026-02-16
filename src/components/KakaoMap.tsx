@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Map, MapMarker, Polyline } from 'react-kakao-maps-sdk'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { MapPin, Phone, Clock, X, Navigation } from 'lucide-react'
+import { MapPin, Phone, Clock, X, Navigation, Calendar } from 'lucide-react'
 
 interface Place {
   id: string
@@ -26,6 +26,17 @@ interface KakaoMapProps {
   showPolyline?: boolean
   selectedDate?: string
 }
+
+// Day colors for markers
+const dayColors = [
+  '#7C3AED', // violet-600
+  '#EC4899', // pink-500
+  '#F59E0B', // amber-500
+  '#10B981', // emerald-500
+  '#3B82F6', // blue-500
+  '#8B5CF6', // violet-500
+  '#EF4444', // red-500
+]
 
 export function KakaoMap({ 
   places, 
@@ -68,6 +79,14 @@ export function KakaoMap({
     ? places.filter(p => p.visit_date === selectedDate)
     : places
 
+  // Group places by date for different colors
+  const dateGroups = Array.from(new Set(places.map(p => p.visit_date)))
+  
+  const getMarkerColor = (place: Place) => {
+    const dateIndex = dateGroups.indexOf(place.visit_date)
+    return dayColors[dateIndex % dayColors.length]
+  }
+
   // Generate polyline path from filtered places
   const polylinePath = showPolyline 
     ? filteredPlaces
@@ -79,9 +98,9 @@ export function KakaoMap({
     return (
       <div 
         style={{ height }} 
-        className="bg-gray-100 rounded-lg flex items-center justify-center"
+        className="bg-gray-100 rounded-2xl flex items-center justify-center"
       >
-        <p className="text-gray-500">지도 로딩 중...</p>
+        <p className="text-gray-400">지도 로딩 중...</p>
       </div>
     )
   }
@@ -91,95 +110,126 @@ export function KakaoMap({
       <Map
         center={mapCenter}
         style={{ width: '100%', height }}
-        className="rounded-lg"
+        className="rounded-2xl"
         level={3}
       >
         {/* Polyline connecting places */}
         {showPolyline && polylinePath.length > 1 && (
           <Polyline
             path={polylinePath}
-            strokeWeight={4}
-            strokeColor="#f43f5e"
-            strokeOpacity={0.7}
+            strokeWeight={3}
+            strokeColor={selectedDate ? '#7C3AED' : '#9CA3AF'}
+            strokeOpacity={0.8}
             strokeStyle="solid"
           />
         )}
 
         {/* Markers */}
-        {filteredPlaces.map((place, index) => (
-          <MapMarker
-            key={place.id}
-            position={{ lat: place.latitude, lng: place.longitude }}
-            onClick={() => handleMarkerClick(place)}
-          >
-              <div className="px-2 py-1 bg-white rounded shadow text-xs font-medium whitespace-nowrap">
-                {index + 1}. {place.place_name}
+        {filteredPlaces.map((place, index) => {
+          const color = getMarkerColor(place)
+          return (
+            <MapMarker
+              key={place.id}
+              position={{ lat: place.latitude, lng: place.longitude }}
+              onClick={() => handleMarkerClick(place)}
+            >
+              <div 
+                className="px-2 py-1 rounded-lg shadow-md text-xs font-bold whitespace-nowrap"
+                style={{ backgroundColor: color, color: 'white' }}
+              >
+                {index + 1}
               </div>
-          </MapMarker>
-        ))}
+            </MapMarker>
+          )
+        })}
       </Map>
 
       {/* Place Info Dialog */}
       <Dialog open={!!selectedPlace} onOpenChange={() => setSelectedPlace(null)}>
-        <DialogContent className="max-w-sm rounded-[2rem] p-0 overflow-hidden">
+        <DialogContent className="max-w-sm p-0 overflow-hidden rounded-2xl"
+        >
           {selectedPlace && (
             <>
-              <div className="h-24 bg-gradient-to-br from-rose-500 to-pink-500 relative">
+              <div 
+                className="h-24 relative"
+                style={{ backgroundColor: getMarkerColor(selectedPlace) }}
+              >
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedPlace(null)}
-                  className="absolute top-2 right-2 text-white hover:bg-white/20 rounded-full w-8 h-8 p-0"
+                  className="absolute top-3 right-3 text-white hover:bg-white/20 rounded-lg w-8 h-8 p-0"
                 >
                   <X className="w-4 h-4" />
                 </Button>
-                <div className="absolute -bottom-6 left-6">
-                  <div className="w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg shadow-rose-200">
+                <div className="absolute -bottom-5 left-5"
+                >
+                  <div 
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-lg"
+                    style={{ backgroundColor: getMarkerColor(selectedPlace) }}
+                  >
                     {filteredPlaces.findIndex(p => p.id === selectedPlace.id) + 1}
                   </div>
                 </div>
               </div>
 
-              <div className="pt-8 pb-6 px-6">
-                <DialogHeader className="mb-4">
-                  <DialogTitle className="text-xl font-black text-foreground">
+              <div className="pt-7 pb-5 px-5">
+                <DialogHeader className="mb-4"
+                >
+                  <DialogTitle className="text-lg font-bold text-gray-900"
+                  >
                     {selectedPlace.place_name}
                   </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-3">
                   {selectedPlace.place_address && (
-                    <div className="flex items-start gap-3 text-sm">
-                      <MapPin className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
-                      <span className="text-muted-foreground font-medium">
-                        {selectedPlace.place_address}
-                      </span>
+                    <div className="flex items-start gap-3 text-sm"
+                    >
+                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+                      <span className="text-gray-600"
+                      >{selectedPlace.place_address}</span>
                     </div>
                   )}
 
                   {selectedPlace.place_phone && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <Phone className="w-4 h-4 text-rose-400 shrink-0" />
-                      <span className="text-muted-foreground font-medium">
-                        {selectedPlace.place_phone}
-                      </span>
+                    <div className="flex items-center gap-3 text-sm"
+                    >
+                      <Phone className="w-4 h-4 text-gray-400 shrink-0" />
+                      <span className="text-gray-600"
+                      >{selectedPlace.place_phone}</span>
                     </div>
                   )}
 
                   {selectedPlace.visit_time && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <Clock className="w-4 h-4 text-rose-400 shrink-0" />
-                      <span className="text-rose-500 font-bold">
-                        {selectedPlace.visit_time.slice(0, 5)}
+                    <div className="flex items-center gap-3 text-sm"
+                    >
+                      <Clock className="w-4 h-4 text-violet-500 shrink-0" />
+                      <span className="text-violet-600 font-medium"
+                      >{selectedPlace.visit_time.slice(0, 5)}</span>
+                    </div>
+                  )}
+
+                  {selectedPlace.visit_date && (
+                    <div className="flex items-center gap-3 text-sm"
+                    >
+                      <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
+                      <span className="text-gray-500"
+                      >
+                        {new Date(selectedPlace.visit_date).toLocaleDateString('ko-KR', {
+                          month: 'short',
+                          day: 'numeric',
+                          weekday: 'short'
+                        })}
                       </span>
                     </div>
                   )}
 
                   {selectedPlace.memo && (
-                    <div className="mt-4 p-4 bg-rose-50 rounded-xl">
-                      <p className="text-sm text-rose-600/80 font-medium italic">
-                      &ldquo;{selectedPlace.memo}&rdquo;
-                      </p>
+                    <div className="mt-4 p-3 bg-gray-50 rounded-xl"
+                    >
+                      <p className="text-sm text-gray-600"
+                      >{selectedPlace.memo}</p>
                     </div>
                   )}
                 </div>
@@ -187,7 +237,7 @@ export function KakaoMap({
                 {/* Open in Kakao Map */}
                 <Button
                   variant="outline"
-                  className="w-full mt-6 h-12 rounded-xl font-bold border-rose-200 hover:bg-rose-50"
+                  className="w-full mt-5 h-11 rounded-xl font-medium border-gray-200 hover:bg-gray-50"
                   onClick={() => {
                     const url = `https://map.kakao.com/link/map/${selectedPlace.place_name},${selectedPlace.latitude},${selectedPlace.longitude}`
                     window.open(url, '_blank')
