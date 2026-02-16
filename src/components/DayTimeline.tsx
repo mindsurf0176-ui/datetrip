@@ -17,7 +17,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, MapPin, Clock, Trash2, StickyNote } from 'lucide-react'
+import { GripVertical, MapPin, Clock, Trash2, StickyNote, Edit2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScheduleItem } from '@/types'
 import { motion } from 'framer-motion'
@@ -25,10 +25,11 @@ import { motion } from 'framer-motion'
 interface SortableScheduleItemProps {
   item: ScheduleItem
   onDelete: (id: string) => void
+  onEdit: (item: ScheduleItem) => void
   index: number
 }
 
-function SortableScheduleItem({ item, onDelete, index }: SortableScheduleItemProps) {
+function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableScheduleItemProps) {
   const {
     attributes,
     listeners,
@@ -99,14 +100,24 @@ function SortableScheduleItem({ item, onDelete, index }: SortableScheduleItemPro
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(item.id)}
-            className="text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl w-10 h-10 p-0 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-          >
-            <Trash2 className="w-5 h-5" />
-          </Button>
+          <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(item)}
+              className="text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl w-10 h-10 p-0"
+            >
+              <Edit2 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(item.id)}
+              className="text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl w-10 h-10 p-0"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
       
@@ -121,9 +132,10 @@ interface DayTimelineProps {
   items: ScheduleItem[]
   onReorder: (items: ScheduleItem[]) => void
   onDelete: (id: string) => void
+  onEdit?: (item: ScheduleItem) => void
 }
 
-export function DayTimeline({ items, onReorder, onDelete }: DayTimelineProps) {
+export function DayTimeline({ items, onReorder, onDelete, onEdit }: DayTimelineProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -177,6 +189,7 @@ export function DayTimeline({ items, onReorder, onDelete }: DayTimelineProps) {
                   key={item.id}
                   item={item}
                   onDelete={onDelete}
+                  onEdit={onEdit || (() => {})}
                   index={index}
                 />
               ))}

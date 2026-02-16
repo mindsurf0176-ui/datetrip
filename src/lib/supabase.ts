@@ -41,6 +41,9 @@ export const supabase = {
       getSupabaseBrowserClient().auth.onAuthStateChange(callback),
   },
   from: (table: string) => getSupabaseBrowserClient().from(table),
+  channel: (name: string) => getSupabaseBrowserClient().channel(name),
+  removeChannel: (channel: ReturnType<ReturnType<typeof getSupabaseBrowserClient>['channel']>) => 
+    getSupabaseBrowserClient().removeChannel(channel),
 }
 
 // 서버/정적 생성용 Supabase 클라이언트
