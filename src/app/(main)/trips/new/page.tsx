@@ -84,7 +84,7 @@ export default function NewTripPage() {
         </Link>
         <h1 className="text-4xl font-black flex items-center gap-3">
           <span className="text-gradient">설레는 새 여행 계획</span>
-          <Sparkles className="w-8 h-8 text-amber-400 fill-amber-400" />
+          <Sparkles className="w-8 h-8 text-rose-400" />
         </h1>
         <p className="text-muted-foreground font-medium text-lg mt-2">우리의 다음 목적지는 어디인가요?</p>
       </motion.div>

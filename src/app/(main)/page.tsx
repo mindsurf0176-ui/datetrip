@@ -90,7 +90,7 @@ export default function HomePage() {
           반가워요, <span className="text-gradient">{user.name}</span>님!
         </h1>
         <p className="text-xl text-muted-foreground font-medium flex items-center justify-center gap-2">
-          오늘은 어떤 설레는 여행을 꿈꾸고 계신가요? <Sparkles className="w-5 h-5 text-amber-400 fill-amber-400" />
+          오늘은 어떤 설레는 여행을 꿈꾸고 계신가요? <Sparkles className="w-5 h-5 text-rose-300" />
         </p>
       </motion.div>
 

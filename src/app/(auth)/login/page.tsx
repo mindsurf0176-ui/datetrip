@@ -9,7 +9,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
-import { Heart, AlertCircle, Sparkles } from 'lucide-react'
+import { Heart, AlertCircle, Sparkles, Eye } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -144,7 +144,7 @@ export default function LoginPage() {
                   router.push('/')
                 }}
               >
-                <Sparkles className="mr-2 w-5 h-5" />
+                <Eye className="mr-2 w-5 h-5" />
                 게스트로 둘러보기
               </Button>
             </div>
@@ -166,7 +166,7 @@ export default function LoginPage() {
           transition={{ delay: 1 }}
           className="text-center text-sm font-semibold text-rose-300 mt-10 flex items-center justify-center gap-1.5"
         >
-          Made with <Heart className="w-4 h-4 fill-rose-300" /> for every couple
+          Made with love for every couple
         </motion.p>
       </motion.div>
     </div>
