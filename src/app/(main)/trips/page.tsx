@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/auth/AuthContext'
@@ -9,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 
 export default function TripsPage() {
-  const { user, couple } = useAuth()
+  const { couple } = useAuth()
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -17,6 +19,7 @@ export default function TripsPage() {
     if (couple) {
       fetchTrips()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [couple])
 
   const fetchTrips = async () => {

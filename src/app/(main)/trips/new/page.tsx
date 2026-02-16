@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -54,8 +56,9 @@ export default function NewTripPage() {
       if (insertError) throw insertError
 
       router.push(`/trips/${data.id}`)
-    } catch (err: any) {
-      setError(err.message || '여행 생성에 실패했습니다.')
+    } catch (err: Error | unknown) {
+      const message = err instanceof Error ? err.message : '여행 생성에 실패했습니다.'
+      setError(message)
       setLoading(false)
     }
   }

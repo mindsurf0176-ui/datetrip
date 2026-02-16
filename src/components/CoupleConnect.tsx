@@ -49,8 +49,9 @@ export default function CoupleConnect() {
 
       await refreshCouple()
       setSuccess(`초대 코드가 생성되었습니다: ${code}`)
-    } catch (err: any) {
-      setError(err.message || '커플 생성에 실패했습니다.')
+    } catch (err: Error | unknown) {
+      const message = err instanceof Error ? err.message : '커플 생성에 실패했습니다.'
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -100,8 +101,9 @@ export default function CoupleConnect() {
 
       await refreshCouple()
       setSuccess('커플 연결이 완료되었습니다! 💕')
-    } catch (err: any) {
-      setError(err.message || '커플 연결에 실패했습니다.')
+    } catch (err: Error | unknown) {
+      const message = err instanceof Error ? err.message : '커플 연결에 실패했습니다.'
+      setError(message)
     } finally {
       setLoading(false)
     }

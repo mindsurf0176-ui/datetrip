@@ -8,8 +8,8 @@ interface AuthContextType {
   user: User | null
   couple: Couple | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   refreshCouple: () => Promise<void>
 }
@@ -23,16 +23,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // 현재 세션 확인
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserProfile(session.user.id)
+    supabase.auth.getSession().then(({ data }: { data: { session: { user: { id: string } } | null } }) => {
+      if (data.session?.user) {
+        fetchUserProfile(data.session.user.id)
       } else {
         setLoading(false)
       }
     })
 
     // 인증 상태 변경 감지
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((
+      _event: string,
+      session: { user: { id: string } } | null
+    ) => {
       if (session?.user) {
         fetchUserProfile(session.user.id)
       } else {
