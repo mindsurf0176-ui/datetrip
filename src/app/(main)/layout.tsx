@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/button'
+import { KakaoMapProvider } from '@/components/KakaoMapProvider'
 
 export default function MainLayout({
   children,
@@ -49,7 +50,7 @@ export default function MainLayout({
 
       {/* 메인 컨텐츠 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
+        <KakaoMapProvider>{children}</KakaoMapProvider>
       </main>
     </div>
   )

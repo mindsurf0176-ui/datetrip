@@ -56,3 +56,45 @@ export interface WishlistItem {
   created_by: string
   created_at: string
 }
+
+// Kakao Maps Types
+interface KakaoPlaceResult {
+  id: string
+  place_name: string
+  address_name: string
+  road_address_name: string
+  phone: string
+  x: string
+  y: string
+  category_name: string
+}
+
+interface KakaoMapsEvent {
+  addListener: (target: unknown, type: string, handler: () => void) => void
+}
+
+declare global {
+  interface Window {
+    kakao: {
+      maps: {
+        services: {
+          Places: new () => {
+            keywordSearch: (
+              keyword: string,
+              callback: (data: KakaoPlaceResult[], status: string) => void
+            ) => void
+          }
+          Status: {
+            OK: string
+            ZERO_RESULT: string
+            ERROR: string
+          }
+        }
+        event: KakaoMapsEvent
+        LatLng: new (lat: number, lng: number) => unknown
+        Map: new (container: HTMLElement, options: Record<string, unknown>) => unknown
+        Marker: new (options: Record<string, unknown>) => unknown
+      }
+    }
+  }
+}
