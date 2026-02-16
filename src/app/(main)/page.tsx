@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/auth/AuthContext'
 import CoupleConnect from '@/components/CoupleConnect'
@@ -11,8 +11,9 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 export default function HomePage() {
-  const { user, couple, loading } = useAuth()
+  const { user, couple, loading, isGuest } = useAuth()
   const router = useRouter()
+  const [skipCoupleConnect, setSkipCoupleConnect] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -45,9 +46,16 @@ export default function HomePage() {
       </div>
 
       {/* 커플 연결 상태 */}
-      {!couple?.user2_id ? (
-        <div className="max-w-md mx-auto">
+      {!couple?.user2_id && !skipCoupleConnect && !isGuest ? (
+        <div className="max-w-md mx-auto space-y-4">
           <CoupleConnect />
+          <Button
+            variant="ghost"
+            className="w-full text-gray-500"
+            onClick={() => setSkipCoupleConnect(true)}
+          >
+            나중에 하기
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
