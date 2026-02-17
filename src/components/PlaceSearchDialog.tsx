@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -47,6 +47,7 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
   const [isLoading, setIsLoading] = useState(false)
   const [isKakaoLoaded, setIsKakaoLoaded] = useState(false)
   const [activeCategory, setActiveCategory] = useState<CategoryType>('all')
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const checkKakaoLoaded = () => {
@@ -95,9 +96,31 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
       searchPlaces()
     }
   }
+
+  // 입력 시 자동 검색 (디바운싱)
+  useEffect(() => {
+    if (!query.trim() || !isKakaoLoaded) return
+    
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
+      searchPlaces()
+    }, 500)
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [query, activeCategory, isKakaoLoaded, searchPlaces])
 
   const handleSelect = (place: KakaoPlace) => {
     onSelect({

@@ -68,12 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // 현재 세션 확인
-    supabase.auth.getSession().then(({ data }: { data: { session: { user: { id: string } } | null } }) => {
-      if (data.session?.user) {
-        fetchUserProfile(data.session.user.id)
+    supabase.auth.getSession().then((result: { data: { session: { user: { id: string } } | null } }) => {
+      const session = result.data.session
+      if (session?.user) {
+        fetchUserProfile(session.user.id)
       } else {
         setLoading(false)
       }
+    }).catch((error: Error) => {
+      console.error('Error getting session:', error)
+      setLoading(false)
     })
 
     // 인증 상태 변경 감지

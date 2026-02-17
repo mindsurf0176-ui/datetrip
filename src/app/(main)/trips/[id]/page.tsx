@@ -42,6 +42,7 @@ export default function TripDetailPage() {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'timeline' | 'map'>('timeline')
   const [activeDayIndex, setActiveDayIndex] = useState(0)
+  const [showAllOnMap, setShowAllOnMap] = useState(false)
   const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null)
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing'>('synced')
 
@@ -469,16 +470,16 @@ export default function TripDetailPage() {
                     places={mapPlaces}
                     height="400px"
                     showPolyline={true}
-                    selectedDate={selectedDate}
+                    selectedDate={showAllOnMap ? undefined : selectedDate}
                   />
                 </div>
 
                 {/* Date Filter */}
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => setActiveDayIndex(0)}
+                    onClick={() => setShowAllOnMap(true)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      activeDayIndex === 0 && activeTab === 'map'
+                      showAllOnMap
                         ? 'bg-violet-600 text-white' 
                         : 'bg-white border border-gray-200 text-gray-600 hover:border-violet-300'
                     }`}
@@ -490,9 +491,12 @@ export default function TripDetailPage() {
                     return (
                       <button
                         key={date}
-                        onClick={() => setActiveDayIndex(idx)}
+                        onClick={() => {
+                          setShowAllOnMap(false)
+                          setActiveDayIndex(idx)
+                        }}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                          activeDayIndex === idx
+                          !showAllOnMap && activeDayIndex === idx
                             ? 'bg-violet-600 text-white' 
                             : hasItems
                               ? 'bg-violet-50 text-violet-600 border border-violet-200'
@@ -507,9 +511,11 @@ export default function TripDetailPage() {
 
                 {/* Place List for Map */}
                 <div className="space-y-3">
-                  <h3 className="font-bold text-gray-900">장소 목록</h3>
+                  <h3 className="font-bold text-gray-900">
+                    장소 목록 {showAllOnMap ? '(전체)' : `(Day ${activeDayIndex + 1})`}
+                  </h3>
                   
-                  {(activeDayIndex === 0 && activeTab === 'map' 
+                  {(showAllOnMap 
                     ? scheduleItems 
                     : currentItems
                   ).filter(item => item.latitude && item.longitude)

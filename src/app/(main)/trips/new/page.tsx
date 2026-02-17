@@ -159,7 +159,14 @@ export default function NewTripPage() {
                     id="startDate"
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      setStartDate(e.target.value)
+                      // 종료일이 출발일보다 이전이면 종료일도 업데이트
+                      if (endDate && e.target.value > endDate) {
+                        setEndDate(e.target.value)
+                      }
+                    }}
                     required
                     className="h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500"
                   />
@@ -175,6 +182,7 @@ export default function NewTripPage() {
                     id="endDate"
                     type="date"
                     value={endDate}
+                    min={startDate || new Date().toISOString().split('T')[0]}
                     onChange={(e) => setEndDate(e.target.value)}
                     required
                     className="h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500"

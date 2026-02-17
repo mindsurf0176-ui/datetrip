@@ -262,10 +262,22 @@ export default function TripsPage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12"
+                className="col-span-full text-center py-12"
               >
                 <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">해당하는 여행이 없습니다</p>
+                <p className="text-gray-500 mb-2">
+                  {filter === 'upcoming' ? '다가오는 여행이 없습니다' : 
+                   filter === 'past' ? '지난 여행이 없습니다' : 
+                   '여행이 없습니다'}
+                </p>
+                {filter !== 'all' && (
+                  <button 
+                    onClick={() => setFilter('all')}
+                    className="text-sm text-violet-600 hover:underline"
+                  >
+                    전체 여행 보기
+                  </button>
+                )}
               </motion.div>
             )}
           </>

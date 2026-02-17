@@ -22,18 +22,35 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    
+    // 클라이언트 사이드 검증
+    if (!email.trim()) {
+      setError('이메일을 입력해주세요.')
+      return
+    }
+    if (!password) {
+      setError('비밀번호를 입력해주세요.')
+      return
+    }
+    
     setLoading(true)
 
     try {
       const { error } = await signIn(email, password)
       if (error) {
-        setError(error.message || '로그인에 실패했습니다.')
+        // 에러 메시지 한글화
+        const errorMessage = error.message?.includes('Invalid login')
+          ? '이메일 또는 비밀번호가 올바르지 않습니다.'
+          : error.message?.includes('Email not confirmed')
+          ? '이메일 인증이 필요합니다. 메일함을 확인해주세요.'
+          : error.message || '로그인에 실패했습니다.'
+        setError(errorMessage)
       } else {
         router.push('/')
         router.refresh()
       }
     } catch {
-      setError('알 수 없는 오류가 발생했습니다.')
+      setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }

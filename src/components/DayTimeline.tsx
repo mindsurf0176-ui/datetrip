@@ -80,7 +80,8 @@ function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableSchedul
           <button
             {...attributes}
             {...listeners}
-            className="mt-1 p-2 text-gray-300 hover:text-gray-500 hover:bg-gray-100 rounded-xl transition-colors cursor-grab active:cursor-grabbing shrink-0"
+            aria-label="드래그하여 순서 변경"
+            className="mt-1 p-2 text-gray-300 hover:text-gray-500 hover:bg-gray-100 rounded-xl transition-colors cursor-grab active:cursor-grabbing shrink-0 touch-manipulation"
           >
             <GripVertical className="w-4 h-4" />
           </button>
@@ -117,6 +118,7 @@ function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableSchedul
                   variant="ghost"
                   size="icon"
                   onClick={() => onEdit(item)}
+                  aria-label={`${item.place_name} 수정`}
                   className="w-8 h-8 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50"
                 >
                   <Edit2 className="w-4 h-4" />
@@ -125,6 +127,7 @@ function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableSchedul
                   variant="ghost"
                   size="icon"
                   onClick={() => onDelete(item.id)}
+                  aria-label={`${item.place_name} 삭제`}
                   className="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />

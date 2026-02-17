@@ -98,9 +98,10 @@ export function KakaoMap({
     return (
       <div 
         style={{ height }} 
-        className="bg-gray-100 rounded-2xl flex items-center justify-center"
+        className="bg-gray-100 rounded-2xl flex flex-col items-center justify-center gap-3"
       >
-        <p className="text-gray-400">지도 로딩 중...</p>
+        <div className="w-8 h-8 border-3 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+        <p className="text-gray-400 text-sm">지도를 불러오는 중...</p>
       </div>
     )
   }
