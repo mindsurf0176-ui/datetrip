@@ -56,7 +56,7 @@ export default function LoginPage() {
             <MapPin className="w-8 h-8 text-white" />
           </motion.div>
           <h1 className="text-2xl font-bold text-gray-900 mb-1">DateTrip</h1>
-          <p className="text-gray-500 text-sm">특별한 여행을 계획핳세요</p>
+          <p className="text-gray-500 text-sm">특별한 여행을 계획해보세요</p>
         </div>
 
         {/* Login Card */}

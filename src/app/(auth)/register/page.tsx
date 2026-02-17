@@ -70,7 +70,7 @@ export default function RegisterPage() {
             </motion.div>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 mb-1">회원가입</h1>
-          <p className="text-gray-500 text-sm">DateTrip과 함께 여행을 계획핳세요</p>
+          <p className="text-gray-500 text-sm">DateTrip과 함께 여행을 계획해보세요</p>
         </div>
 
         <div className="card-triple p-6">

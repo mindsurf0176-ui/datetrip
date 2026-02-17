@@ -97,7 +97,7 @@ export default function NewTripPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">새 여행 만들기</h1>
-              <p className="text-gray-500">특별한 여행을 계획핳세요</p>
+              <p className="text-gray-500">특별한 여행을 계획해보세요</p>
             </div>
           </div>
         </motion.div>
