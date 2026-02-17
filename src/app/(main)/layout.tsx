@@ -116,14 +116,14 @@ export default function MainLayout({
               <Plus className="w-6 h-6 text-white" />
             </div>
           </Link>
-          <button className="flex flex-col items-center justify-center w-full h-full text-gray-400">
+          <Link href="/map" className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-violet-600">
             <MapPin className="w-5 h-5" />
             <span className="text-[10px] mt-0.5 font-medium">지도</span>
-          </button>
-          <button className="flex flex-col items-center justify-center w-full h-full text-gray-400">
+          </Link>
+          <Link href="/settings" className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-violet-600">
             <Settings className="w-5 h-5" />
             <span className="text-[10px] mt-0.5 font-medium">설정</span>
-          </button>
+          </Link>
         </div>
       </div>
       
