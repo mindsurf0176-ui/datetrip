@@ -9,7 +9,7 @@ export interface User {
 export interface Couple {
   id: string
   user1_id: string
-  user2_id: string
+  user2_id: string | null  // nullable - 파트너가 아직 연결되지 않은 경우
   invite_code: string
   created_at: string
 }

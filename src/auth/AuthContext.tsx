@@ -147,14 +147,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: '게스트',
       created_at: new Date().toISOString(),
     } as User)
-    // 게스트용 임시 커플 정보 생성
+    // 게스트용 임시 커플 정보 생성 (user2_id는 null이어야 함 - DB 스키마와 일치)
     setCouple({
       id: 'guest-couple-' + Date.now(),
       user1_id: guestId,
-      user2_id: '',
-      invite_code: '',
+      user2_id: null,
+      invite_code: 'GUEST000',
       created_at: new Date().toISOString(),
-    } as Couple)
+    })
     setLoading(false)
   }
 

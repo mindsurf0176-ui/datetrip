@@ -14,6 +14,7 @@ import { KakaoMap } from '@/components/KakaoMap'
 import { PlaceSearchDialog } from '@/components/PlaceSearchDialog'
 import { ScheduleEditDialog } from '@/components/ScheduleEditDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { TripEditDialog } from '@/components/TripEditDialog'
 import { getDatesBetween, formatDate } from '@/lib/utils'
 import { 
   ArrowLeft, 
@@ -26,7 +27,10 @@ import {
   List,
   ChevronLeft,
   ChevronRight,
-  Clock
+  Clock,
+  MoreVertical,
+  Edit2,
+  Trash2
 } from 'lucide-react'
 // KakaoMapProvider는 부모 layout에서 이미 제공됨
 import { motion, AnimatePresence } from 'framer-motion'
@@ -53,6 +57,10 @@ export default function TripDetailPage() {
     itemId: null,
   })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isTripEditOpen, setIsTripEditOpen] = useState(false)
+  const [tripDeleteConfirm, setTripDeleteConfirm] = useState(false)
+  const [isDeletingTrip, setIsDeletingTrip] = useState(false)
+  const [showTripMenu, setShowTripMenu] = useState(false)
 
   // 권한 체크: 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
   useEffect(() => {
@@ -267,6 +275,52 @@ export default function TripDetailPage() {
     })
   }, [trip])
 
+  const handleTripUpdate = async (updatedTrip: Trip) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({
+          title: updatedTrip.title,
+          destination: updatedTrip.destination,
+          start_date: updatedTrip.start_date,
+          end_date: updatedTrip.end_date,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', updatedTrip.id)
+
+      if (error) throw error
+      
+      setTrip(updatedTrip)
+      // 날짜가 변경되면 activeDayIndex 리셋
+      setActiveDayIndex(0)
+    } catch (error) {
+      console.error('Error updating trip:', error)
+      throw error
+    }
+  }
+
+  const handleTripDelete = async () => {
+    if (!trip) return
+
+    setIsDeletingTrip(true)
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .delete()
+        .eq('id', trip.id)
+
+      if (error) throw error
+      
+      router.push('/trips')
+    } catch (error) {
+      console.error('Error deleting trip:', error)
+      alert('여행 삭제에 실패했습니다.')
+    } finally {
+      setIsDeletingTrip(false)
+      setTripDeleteConfirm(false)
+    }
+  }
+
   // 스와이프로 날짜 변경 (모바일 UX)
   const swipeHandlers = useSwipe({
     onSwipeLeft: () => handleDayChange('next'),
@@ -358,6 +412,48 @@ export default function TripDetailPage() {
                 <RefreshCw 
                   className={`w-4 h-4 ${syncStatus === 'syncing' ? 'animate-spin text-violet-600' : 'text-gray-300'}`} 
                 />
+                {/* Trip Menu */}
+                <div className="relative">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="w-9 h-9 rounded-xl"
+                    onClick={() => setShowTripMenu(!showTripMenu)}
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </Button>
+                  
+                  {showTripMenu && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowTripMenu(false)} 
+                      />
+                      <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                        <button
+                          onClick={() => {
+                            setShowTripMenu(false)
+                            setIsTripEditOpen(true)
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          여행 수정
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowTripMenu(false)
+                            setTripDeleteConfirm(true)
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          여행 삭제
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -637,6 +733,25 @@ export default function TripDetailPage() {
           variant="destructive"
           onConfirm={handleDeleteConfirm}
           loading={isDeleting}
+        />
+
+        <TripEditDialog
+          isOpen={isTripEditOpen}
+          onClose={() => setIsTripEditOpen(false)}
+          trip={trip}
+          onSave={handleTripUpdate}
+        />
+
+        <ConfirmDialog
+          open={tripDeleteConfirm}
+          onOpenChange={setTripDeleteConfirm}
+          title="여행 삭제"
+          description={`"${trip?.title}" 여행을 삭제하시겠습니까? 모든 일정이 함께 삭제되며, 복구할 수 없습니다.`}
+          confirmText="삭제"
+          cancelText="취소"
+          variant="destructive"
+          onConfirm={handleTripDelete}
+          loading={isDeletingTrip}
         />
       </div>
   )
