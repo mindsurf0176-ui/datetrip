@@ -21,30 +21,13 @@ import { GripVertical, MapPin, Clock, Trash2, StickyNote, Edit2, Plus } from 'lu
 import { Button } from '@/components/ui/button'
 import { ScheduleItem } from '@/types'
 import { motion } from 'framer-motion'
+import { getCategoryStyle } from '@/lib/utils'
 
 interface SortableScheduleItemProps {
   item: ScheduleItem
   onDelete: (id: string) => void
   onEdit: (item: ScheduleItem) => void
   index: number
-}
-
-// Category icons and colors
-const getCategoryStyle = (placeName: string) => {
-  const name = placeName.toLowerCase()
-  if (name.includes('카페') || name.includes('커피')) {
-    return { color: 'bg-amber-100 text-amber-700', label: '카페', icon: 'cafe' }
-  }
-  if (name.includes('식당') || name.includes('음식점') || name.includes('맛집')) {
-    return { color: 'bg-orange-100 text-orange-700', label: '맛집', icon: 'food' }
-  }
-  if (name.includes('호텔') || name.includes('펜션') || name.includes('숙소')) {
-    return { color: 'bg-blue-100 text-blue-700', label: '숙소', icon: 'hotel' }
-  }
-  if (name.includes('공원') || name.includes('산') || name.includes('바다') || name.includes('해변')) {
-    return { color: 'bg-green-100 text-green-700', label: '자연', icon: 'nature' }
-  }
-  return { color: 'bg-violet-100 text-violet-700', label: '관광', icon: 'sight' }
 }
 
 function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableScheduleItemProps) {

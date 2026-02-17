@@ -117,14 +117,18 @@ export default function TripsPage() {
         ) : (
           <>
             {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6" role="tablist" aria-label="여행 필터">
               <button
+                role="tab"
+                aria-selected={filter === 'all'}
                 onClick={() => setFilter('all')}
                 className={`tab-triple ${filter === 'all' ? 'tab-triple-active' : 'tab-triple-inactive'}`}
               >
                 전체
               </button>
               <button
+                role="tab"
+                aria-selected={filter === 'upcoming'}
                 onClick={() => setFilter('upcoming')}
                 className={`tab-triple ${filter === 'upcoming' ? 'tab-triple-active' : 'tab-triple-inactive'}`}
               >
@@ -134,6 +138,8 @@ export default function TripsPage() {
                 </span>
               </button>
               <button
+                role="tab"
+                aria-selected={filter === 'past'}
                 onClick={() => setFilter('past')}
                 className={`tab-triple ${filter === 'past' ? 'tab-triple-active' : 'tab-triple-inactive'}`}
               >

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/auth/AuthContext'
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import { KakaoMapProvider } from '@/components/KakaoMapProvider'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSwipe } from '@/hooks/useSwipe'
 
 export default function TripDetailPage() {
   const params = useParams()
@@ -240,15 +241,41 @@ export default function TripDetailPage() {
     }
   }
 
-  const handleDayChange = (direction: 'prev' | 'next') => {
+  const handleDayChange = useCallback((direction: 'prev' | 'next') => {
     if (!trip) return
-    const totalDays = tripDates.length
-    if (direction === 'prev' && activeDayIndex > 0) {
-      setActiveDayIndex(prev => prev - 1)
-    } else if (direction === 'next' && activeDayIndex < totalDays - 1) {
-      setActiveDayIndex(prev => prev + 1)
-    }
-  }
+    setActiveDayIndex(prev => {
+      if (direction === 'prev' && prev > 0) return prev - 1
+      if (direction === 'next' && prev < getDatesBetween(trip.start_date, trip.end_date).length - 1) return prev + 1
+      return prev
+    })
+  }, [trip])
+
+  // 스와이프로 날짜 변경 (모바일 UX)
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: () => handleDayChange('next'),
+    onSwipeRight: () => handleDayChange('prev'),
+  })
+
+  // Memoized 계산
+  const tripDates = useMemo(() => 
+    trip ? getDatesBetween(trip.start_date, trip.end_date) : []
+  , [trip])
+
+  const selectedDate = tripDates[activeDayIndex] || ''
+
+  const currentItems = useMemo(() => 
+    scheduleItems.filter((item) => item.visit_date === selectedDate)
+  , [scheduleItems, selectedDate])
+
+  const mapPlaces = useMemo(() => 
+    scheduleItems
+      .filter((item) => item.latitude && item.longitude)
+      .map((item) => ({
+        ...item,
+        latitude: item.latitude!,
+        longitude: item.longitude!,
+      }))
+  , [scheduleItems])
 
   if (loading) {
     return (
@@ -278,17 +305,6 @@ export default function TripDetailPage() {
       </div>
     )
   }
-
-  const tripDates = getDatesBetween(trip.start_date, trip.end_date)
-  const selectedDate = tripDates[activeDayIndex]
-  const currentItems = getItemsByDate(selectedDate)
-  const mapPlaces = scheduleItems
-    .filter((item) => item.latitude && item.longitude)
-    .map((item) => ({
-      ...item,
-      latitude: item.latitude!,
-      longitude: item.longitude!,
-    }))
 
   return (
     <KakaoMapProvider>
@@ -338,8 +354,11 @@ export default function TripDetailPage() {
         {/* Tab Navigation */}
         <div className="bg-white border-b border-gray-100 sticky top-16 z-30">
           <div className="max-w-5xl mx-auto px-4">
-            <div className="flex gap-1">
+            <div className="flex gap-1" role="tablist" aria-label="일정 보기 방식">
               <button
+                role="tab"
+                aria-selected={activeTab === 'timeline'}
+                aria-controls="timeline-panel"
                 onClick={() => setActiveTab('timeline')}
                 className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'timeline' 
@@ -353,6 +372,9 @@ export default function TripDetailPage() {
                 </div>
               </button>
               <button
+                role="tab"
+                aria-selected={activeTab === 'map'}
+                aria-controls="map-panel"
                 onClick={() => setActiveTab('map')}
                 className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'map' 
@@ -375,10 +397,14 @@ export default function TripDetailPage() {
             {activeTab === 'timeline' ? (
               <motion.div
                 key="timeline"
+                id="timeline-panel"
+                role="tabpanel"
+                aria-labelledby="timeline-tab"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-6"
+                {...swipeHandlers}
               >
                 {/* Day Navigation */}
                 <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-gray-100">
@@ -461,6 +487,9 @@ export default function TripDetailPage() {
             ) : (
               <motion.div
                 key="map"
+                id="map-panel"
+                role="tabpanel"
+                aria-labelledby="map-tab"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}

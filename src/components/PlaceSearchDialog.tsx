@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, MapPin, Plus, Utensils, Coffee, Camera, Bed, Store } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getCategoryStyle } from '@/lib/utils'
 
 interface KakaoPlace {
   id: string
@@ -137,11 +138,7 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
   }
 
   const getCategoryFromPlace = (place: KakaoPlace) => {
-    const category = place.category_name.toLowerCase()
-    if (category.includes('카페') || category.includes('커피')) return { color: 'bg-amber-100 text-amber-700', label: '카페' }
-    if (category.includes('음식') || category.includes('식당') || category.includes('맛집')) return { color: 'bg-orange-100 text-orange-700', label: '맛집' }
-    if (category.includes('호텔') || category.includes('숙박') || category.includes('펜션')) return { color: 'bg-blue-100 text-blue-700', label: '숙소' }
-    return { color: 'bg-violet-100 text-violet-700', label: '관광' }
+    return getCategoryStyle(place.place_name, place.category_name)
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Map, MapMarker, Polyline } from 'react-kakao-maps-sdk'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -74,25 +74,31 @@ export function KakaoMap({
     onMarkerClick?.(place)
   }, [onMarkerClick])
 
-  // Filter places by selected date if provided
-  const filteredPlaces = selectedDate 
-    ? places.filter(p => p.visit_date === selectedDate)
-    : places
+  // Filter places by selected date if provided (memoized)
+  const filteredPlaces = useMemo(() => 
+    selectedDate 
+      ? places.filter(p => p.visit_date === selectedDate)
+      : places
+  , [places, selectedDate])
 
-  // Group places by date for different colors
-  const dateGroups = Array.from(new Set(places.map(p => p.visit_date)))
+  // Group places by date for different colors (memoized)
+  const dateGroups = useMemo(() => 
+    Array.from(new Set(places.map(p => p.visit_date)))
+  , [places])
   
-  const getMarkerColor = (place: Place) => {
+  const getMarkerColor = useCallback((place: Place) => {
     const dateIndex = dateGroups.indexOf(place.visit_date)
     return dayColors[dateIndex % dayColors.length]
-  }
+  }, [dateGroups])
 
-  // Generate polyline path from filtered places
-  const polylinePath = showPolyline 
-    ? filteredPlaces
-        .filter(p => p.latitude && p.longitude)
-        .map(p => ({ lat: p.latitude, lng: p.longitude }))
-    : []
+  // Generate polyline path from filtered places (memoized)
+  const polylinePath = useMemo(() => 
+    showPolyline 
+      ? filteredPlaces
+          .filter(p => p.latitude && p.longitude)
+          .map(p => ({ lat: p.latitude, lng: p.longitude }))
+      : []
+  , [showPolyline, filteredPlaces])
 
   if (!isLoaded) {
     return (

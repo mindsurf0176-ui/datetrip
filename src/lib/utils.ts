@@ -18,6 +18,33 @@ export function formatDate(dateString: string, options?: Intl.DateTimeFormatOpti
 }
 
 /**
+ * 장소명/카테고리로 카테고리 스타일 반환
+ */
+export type CategoryStyle = {
+  color: string
+  label: string
+  icon: 'cafe' | 'food' | 'hotel' | 'nature' | 'sight'
+}
+
+export function getCategoryStyle(placeName: string, categoryName?: string): CategoryStyle {
+  const name = (categoryName || placeName).toLowerCase()
+  
+  if (name.includes('카페') || name.includes('커피')) {
+    return { color: 'bg-amber-100 text-amber-700', label: '카페', icon: 'cafe' }
+  }
+  if (name.includes('식당') || name.includes('음식점') || name.includes('맛집') || name.includes('음식')) {
+    return { color: 'bg-orange-100 text-orange-700', label: '맛집', icon: 'food' }
+  }
+  if (name.includes('호텔') || name.includes('펜션') || name.includes('숙소') || name.includes('숙박')) {
+    return { color: 'bg-blue-100 text-blue-700', label: '숙소', icon: 'hotel' }
+  }
+  if (name.includes('공원') || name.includes('산') || name.includes('바다') || name.includes('해변')) {
+    return { color: 'bg-green-100 text-green-700', label: '자연', icon: 'nature' }
+  }
+  return { color: 'bg-violet-100 text-violet-700', label: '관광', icon: 'sight' }
+}
+
+/**
  * D-day 계산
  */
 export function calculateDday(startDate: string): string {
