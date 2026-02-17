@@ -35,7 +35,7 @@ import { useSwipe } from '@/hooks/useSwipe'
 export default function TripDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { user, isGuest } = useAuth()
+  const { user, couple, loading: authLoading, isGuest } = useAuth()
   const tripId = params.id as string
 
   const [trip, setTrip] = useState<Trip | null>(null)
@@ -54,6 +54,13 @@ export default function TripDetailPage() {
   })
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // 권한 체크: 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (!authLoading && !user && !isGuest) {
+      router.push('/login?redirect=' + encodeURIComponent(`/trips/${tripId}`))
+    }
+  }, [authLoading, user, isGuest, router, tripId])
+
   const fetchTrip = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -63,12 +70,19 @@ export default function TripDetailPage() {
         .single()
 
       if (error) throw error
+      
+      // 권한 체크: 게스트가 아닌 경우 자신의 커플 여행만 접근 가능
+      if (!isGuest && couple && data.couple_id !== couple.id) {
+        router.push('/trips')
+        return
+      }
+      
       setTrip(data)
     } catch (error) {
       console.error('Error fetching trip:', error)
       router.push('/trips')
     }
-  }, [tripId, router])
+  }, [tripId, router, isGuest, couple])
 
   const fetchScheduleItems = useCallback(async () => {
     try {
@@ -87,12 +101,15 @@ export default function TripDetailPage() {
   }, [tripId])
 
   useEffect(() => {
+    // 인증 로딩 중이거나 비로그인 상태면 데이터 fetch 안함
+    if (authLoading || (!user && !isGuest)) return
+    
     if (tripId) {
       Promise.all([fetchTrip(), fetchScheduleItems()]).then(() => {
         setLoading(false)
       })
     }
-  }, [tripId, fetchTrip, fetchScheduleItems])
+  }, [tripId, fetchTrip, fetchScheduleItems, authLoading, user, isGuest])
 
   // 실시간 동기화 (게스트 모드에서는 스킵)
   useEffect(() => {
@@ -276,6 +293,22 @@ export default function TripDetailPage() {
         longitude: item.longitude!,
       }))
   , [scheduleItems])
+
+  // 인증 로딩 또는 비로그인 상태 (리다이렉트 대기 중)
+  if (authLoading || (!user && !isGuest)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="w-12 h-12 gradient-violet rounded-2xl flex items-center justify-center"
+        >
+          <Navigation className="w-6 h-6 text-white" />
+        </motion.div>
+        <p className="text-gray-400 font-medium">로그인 상태 확인 중...</p>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
