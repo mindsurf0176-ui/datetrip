@@ -136,12 +136,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginAsGuest = () => {
     setIsGuest(true)
+    const guestId = 'guest-' + Date.now()
     setUser({
-      id: 'guest',
+      id: guestId,
       email: 'guest@datetrip.app',
       name: '게스트',
       created_at: new Date().toISOString(),
     } as User)
+    // 게스트용 임시 커플 정보 생성
+    setCouple({
+      id: 'guest-couple-' + Date.now(),
+      user1_id: guestId,
+      user2_id: '',
+      invite_code: '',
+      created_at: new Date().toISOString(),
+    } as Couple)
     setLoading(false)
   }
 
