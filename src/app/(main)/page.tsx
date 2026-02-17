@@ -35,7 +35,7 @@ const recommendedDestinations = [
   {
     id: '2',
     name: '부산',
-    description: '해울대와 감천문화마을',
+    description: '해운대와 감천문화마을',
     rating: 4.7,
     tags: ['도시', '맛집', '바다']
   },

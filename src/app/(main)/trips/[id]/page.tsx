@@ -448,7 +448,6 @@ export default function TripDetailPage() {
                   </div>
 
                   <DayTimeline
-                    date={selectedDate}
                     items={currentItems}
                     onReorder={handleReorder}
                     onDelete={handleDelete}
@@ -484,7 +483,7 @@ export default function TripDetailPage() {
                         : 'bg-white border border-gray-200 text-gray-600 hover:border-violet-300'
                     }`}
                   >
-                    전첳 보기
+                    전체 보기
                   </button>
                   {tripDates.map((date, idx) => {
                     const hasItems = getItemsByDate(date).length > 0

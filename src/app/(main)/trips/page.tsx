@@ -134,7 +134,7 @@ export default function TripsPage() {
               <MapPin className="w-10 h-10 text-violet-300" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">아직 여행이 없어요</h3>
-            <p className="text-gray-500 mb-6">첫 번째 특별한 여행을 계획핳세요</p>
+            <p className="text-gray-500 mb-6">첫 번째 특별한 여행을 계획해보세요</p>
             <Link href="/trips/new">
               <Button className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-8 h-12">
                 <Plus className="w-5 h-5 mr-2" />

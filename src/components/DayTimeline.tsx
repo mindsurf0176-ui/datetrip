@@ -112,7 +112,7 @@ function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableSchedul
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -161,7 +161,6 @@ function SortableScheduleItem({ item, onDelete, onEdit, index }: SortableSchedul
 }
 
 interface DayTimelineProps {
-  date: string
   items: ScheduleItem[]
   onReorder: (items: ScheduleItem[]) => void
   onDelete: (id: string) => void
