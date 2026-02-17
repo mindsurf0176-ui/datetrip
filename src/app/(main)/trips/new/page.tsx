@@ -15,11 +15,13 @@ import {
   MapPin, 
   Calendar, 
   Navigation,
-  Compass
+  Compass,
+  Heart,
+  UserPlus
 } from 'lucide-react'
 
 export default function NewTripPage() {
-  const { couple } = useAuth()
+  const { couple, isGuest } = useAuth()
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [destination, setDestination] = useState('')
@@ -84,6 +86,39 @@ export default function NewTripPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* 게스트 또는 커플 미연결 안내 */}
+        {(!couple || isGuest) ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card-triple p-8 text-center"
+          >
+            <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              {isGuest ? <UserPlus className="w-8 h-8 text-violet-600" /> : <Heart className="w-8 h-8 text-violet-600" />}
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {isGuest ? '회원가입이 필요해요' : '커플 연결이 필요해요'}
+            </h2>
+            <p className="text-gray-500 mb-6">
+              {isGuest 
+                ? '회원가입하고 파트너와 함께 여행을 계획해보세요'
+                : '파트너와 연결하면 함께 여행을 만들 수 있어요'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href={isGuest ? '/register' : '/'}>
+                <Button className="w-full sm:w-auto bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-6 h-12">
+                  {isGuest ? '회원가입하기' : '커플 연결하러 가기'}
+                </Button>
+              </Link>
+              <Link href="/trips">
+                <Button variant="outline" className="w-full sm:w-auto rounded-xl px-6 h-12 border-gray-200">
+                  여행 목록으로
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        ) : (
+        <>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -220,6 +255,8 @@ export default function NewTripPage() {
             </div>
           </form>
         </motion.div>
+        </>
+        )}
       </div>
     </div>
   )

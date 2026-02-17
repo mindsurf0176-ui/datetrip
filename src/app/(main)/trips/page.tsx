@@ -75,6 +75,43 @@ export default function TripsPage() {
     )
   }
 
+  // 게스트 또는 커플 미연결 사용자 안내
+  if (!couple || isGuest) {
+    return (
+      <div className="min-h-screen pb-20">
+        <div className="bg-white border-b border-gray-100 px-4 py-6">
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-2xl font-bold text-gray-900">내 여행</h1>
+          </div>
+        </div>
+        <div className="max-w-5xl mx-auto px-4 py-12">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="card-triple p-12 text-center"
+          >
+            <div className="w-20 h-20 bg-violet-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <MapPin className="w-10 h-10 text-violet-300" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {isGuest ? '게스트 모드로 이용 중이에요' : '커플 연결이 필요해요'}
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {isGuest 
+                ? '회원가입하고 파트너와 함께 여행을 계획해보세요'
+                : '파트너와 연결하면 함께 여행을 계획할 수 있어요'}
+            </p>
+            <Link href={isGuest ? '/register' : '/'}>
+              <Button className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-8 h-12">
+                {isGuest ? '회원가입하기' : '커플 연결하러 가기'}
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen pb-20">
       {/* Header */}

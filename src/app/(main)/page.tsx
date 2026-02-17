@@ -216,10 +216,21 @@ export default function HomePage() {
                             </p>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-2xl font-black text-violet-600">
-                              {calculateDday(trip.start_date)}
-                            </span>
-                            <span className="text-xs text-gray-400">일 남음</span>
+                            {(() => {
+                              const dday = calculateDday(trip.start_date)
+                              const isToday = dday === 'D-Day'
+                              const isPast = dday.startsWith('D+')
+                              return (
+                                <>
+                                  <span className="text-2xl font-black text-violet-600">
+                                    {isToday ? '🎉' : dday.replace('D-', '')}
+                                  </span>
+                                  <span className="text-xs text-gray-400">
+                                    {isToday ? 'D-Day!' : isPast ? '지남' : '일 남음'}
+                                  </span>
+                                </>
+                              )
+                            })()}
                           </div>
                         </div>
                       </Link>

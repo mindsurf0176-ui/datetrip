@@ -28,7 +28,7 @@ import {
   ChevronRight,
   Clock
 } from 'lucide-react'
-import { KakaoMapProvider } from '@/components/KakaoMapProvider'
+// KakaoMapProvider는 부모 layout에서 이미 제공됨
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSwipe } from '@/hooks/useSwipe'
 
@@ -307,7 +307,6 @@ export default function TripDetailPage() {
   }
 
   return (
-    <KakaoMapProvider>
       <div className="min-h-screen pb-20">
         {/* Header */}
         <div className="bg-white border-b border-gray-100 px-4 py-4">
@@ -607,6 +606,5 @@ export default function TripDetailPage() {
           loading={isDeleting}
         />
       </div>
-    </KakaoMapProvider>
   )
 }
