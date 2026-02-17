@@ -2,17 +2,19 @@ import { createBrowserClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 
 const getSupabaseUrl = () => {
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!url) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
   }
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
+  return url
 }
 
 const getSupabaseKey = () => {
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key'
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!key) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
   }
-  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key'
+  return key
 }
 
 // 클라이언트 컴포넌트용 Supabase 클라이언트 (lazy initialization)
