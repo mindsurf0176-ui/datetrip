@@ -22,67 +22,7 @@ import {
   Compass
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { Trip } from '@/types'
-
-// Mock recommended destinations
-const recommendedDestinations = [
-  {
-    id: '1',
-    name: '제주도',
-    description: '푸른 바다와 아름다운 오름',
-    rating: 4.8,
-    tags: ['핫플', '자연', '힐링']
-  },
-  {
-    id: '2',
-    name: '부산',
-    description: '해운대와 감천문화마을',
-    rating: 4.7,
-    tags: ['도시', '맛집', '바다']
-  },
-  {
-    id: '3',
-    name: '강릉',
-    description: '커피 거리와 아름다운 항구',
-    rating: 4.6,
-    tags: ['커피', '핫플', '로맨틱']
-  },
-  {
-    id: '4',
-    name: '전주',
-    description: '한옥마을과 전통 음식',
-    rating: 4.5,
-    tags: ['전통', '맛집', '문화']
-  }
-]
-
-// Mock recommended courses
-const recommendedCourses = [
-  {
-    id: '1',
-    title: '제주 3박 4일 커플 여행',
-    author: 'Traveler Kim',
-    days: 4,
-    places: 12,
-    likes: 2341
-  },
-  {
-    id: '2',
-    title: '부산 2박 3일 먹방 투어',
-    author: 'Foodie Lee',
-    days: 3,
-    places: 15,
-    likes: 1856
-  },
-  {
-    id: '3',
-    title: '강릉 1박 2일 힐링 여행',
-    author: 'Relax Park',
-    days: 2,
-    places: 8,
-    likes: 1234
-  }
-]
+import { Trip, Destination, Course } from '@/types'
 
 export default function HomePage() {
   const { user, couple, loading, isGuest } = useAuth()
@@ -90,6 +30,8 @@ export default function HomePage() {
   const [skipCoupleConnect, setSkipCoupleConnect] = useState(false)
   const [myTrips, setMyTrips] = useState<Trip[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [destinations, setDestinations] = useState<Destination[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
 
   useEffect(() => {
     if (!loading && !user) {
@@ -121,6 +63,45 @@ export default function HomePage() {
       fetchMyTrips()
     }
   }, [couple, isGuest])
+
+  // 추천 여행지 & 코스 불러오기
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        // 추천 여행지 불러오기
+        const { data: destData, error: destError } = await supabase
+          .from('destinations')
+          .select('*')
+          .eq('is_active', true)
+          .order('order_index', { ascending: true })
+          .limit(6)
+
+        if (destError) {
+          console.error('Error fetching destinations:', destError)
+        } else {
+          setDestinations(destData || [])
+        }
+
+        // 추천 코스 불러오기
+        const { data: courseData, error: courseError } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_featured', true)
+          .order('likes_count', { ascending: false })
+          .limit(5)
+
+        if (courseError) {
+          console.error('Error fetching courses:', courseError)
+        } else {
+          setCourses(courseData || [])
+        }
+      } catch (error) {
+        console.error('Error fetching recommendations:', error)
+      }
+    }
+
+    fetchRecommendations()
+  }, [])
 
   if (loading) {
     return (
@@ -263,6 +244,7 @@ export default function HomePage() {
             )}
 
             {/* Recommended Destinations */}
+            {destinations.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900">추천 여행지</h2>
@@ -270,7 +252,7 @@ export default function HomePage() {
               </div>
               
               <div className="flex gap-4 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
-                {recommendedDestinations.map((dest, idx) => (
+                {destinations.map((dest, idx) => (
                   <motion.div
                     key={dest.id}
                     initial={{ opacity: 0, x: 20 }}
@@ -304,8 +286,10 @@ export default function HomePage() {
                 ))}
               </div>
             </section>
+            )}
 
             {/* Recommended Courses */}
+            {courses.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -316,7 +300,7 @@ export default function HomePage() {
               </div>
               
               <div className="space-y-3">
-                {recommendedCourses.map((course, idx) => (
+                {courses.map((course, idx) => (
                   <motion.div
                     key={course.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -327,7 +311,7 @@ export default function HomePage() {
                       <div className="w-24 h-24 bg-gradient-to-br from-violet-200 to-purple-200 rounded-xl flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-900 line-clamp-2">{course.title}</h3>
-                        <p className="text-sm text-gray-400 mt-1">{course.author}</p>
+                        <p className="text-sm text-gray-400 mt-1">{course.author_name}</p>
                         <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
@@ -335,11 +319,11 @@ export default function HomePage() {
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />
-                            {course.places}곳
+                            {course.places_count}곳
                           </span>
                           <span className="flex items-center gap-1">
                             <Heart className="w-3.5 h-3.5" />
-                            {course.likes.toLocaleString()}
+                            {course.likes_count.toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -348,6 +332,7 @@ export default function HomePage() {
                 ))}
               </div>
             </section>
+            )}
 
             {/* Quick Actions */}
             <section>

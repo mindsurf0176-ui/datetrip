@@ -167,6 +167,64 @@ CREATE POLICY "Couple members can manage wishlist"
     AND (couples.user1_id = auth.uid() OR couples.user2_id = auth.uid())
   ));
 
+-- Destinations 테이블 (추천 여행지)
+CREATE TABLE destinations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  rating DECIMAL(2, 1) DEFAULT 4.5,
+  tags TEXT[] DEFAULT '{}',
+  is_active BOOLEAN DEFAULT true,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Courses 테이블 (추천 코스)
+CREATE TABLE courses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  author_name TEXT NOT NULL,
+  destination TEXT,
+  days INTEGER DEFAULT 1,
+  places_count INTEGER DEFAULT 0,
+  likes_count INTEGER DEFAULT 0,
+  image_url TEXT,
+  is_featured BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Destinations: 누구나 조회 가능 (공개 데이터)
+ALTER TABLE destinations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view active destinations" 
+  ON destinations FOR SELECT 
+  USING (is_active = true);
+
+-- Courses: 누구나 조회 가능 (공개 데이터)
+ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view featured courses" 
+  ON courses FOR SELECT 
+  USING (is_featured = true);
+
+-- Seed data for destinations
+INSERT INTO destinations (name, description, rating, tags, order_index) VALUES
+  ('제주도', '푸른 바다와 아름다운 오름', 4.8, ARRAY['핫플', '자연', '힐링'], 1),
+  ('부산', '해운대와 감천문화마을', 4.7, ARRAY['도시', '맛집', '바다'], 2),
+  ('강릉', '커피 거리와 아름다운 항구', 4.6, ARRAY['커피', '핫플', '로맨틱'], 3),
+  ('전주', '한옥마을과 전통 음식', 4.5, ARRAY['전통', '맛집', '문화'], 4),
+  ('경주', '천년 고도의 역사 여행', 4.6, ARRAY['역사', '문화', '야경'], 5),
+  ('여수', '밤바다와 낭만 가득', 4.7, ARRAY['야경', '바다', '로맨틱'], 6);
+
+-- Seed data for courses
+INSERT INTO courses (title, author_name, destination, days, places_count, likes_count) VALUES
+  ('제주 3박 4일 커플 여행', 'Traveler Kim', '제주도', 4, 12, 2341),
+  ('부산 2박 3일 먹방 투어', 'Foodie Lee', '부산', 3, 15, 1856),
+  ('강릉 1박 2일 힐링 여행', 'Relax Park', '강릉', 2, 8, 1234),
+  ('전주 당일치기 한옥마을', 'Culture Choi', '전주', 1, 6, 987),
+  ('경주 2박 3일 역사 탐방', 'History Jung', '경주', 3, 10, 1567);
+
 -- Realtime 활성화
 ALTER PUBLICATION supabase_realtime ADD TABLE trips;
 ALTER PUBLICATION supabase_realtime ADD TABLE schedule_items;

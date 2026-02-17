@@ -57,6 +57,31 @@ export interface WishlistItem {
   created_at: string
 }
 
+export interface Destination {
+  id: string
+  name: string
+  description?: string
+  image_url?: string
+  rating: number
+  tags: string[]
+  is_active: boolean
+  order_index: number
+  created_at: string
+}
+
+export interface Course {
+  id: string
+  title: string
+  author_name: string
+  destination?: string
+  days: number
+  places_count: number
+  likes_count: number
+  image_url?: string
+  is_featured: boolean
+  created_at: string
+}
+
 // Kakao Maps Types
 interface KakaoPlaceResult {
   id: string

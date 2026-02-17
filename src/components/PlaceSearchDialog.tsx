@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,48 @@ const categories: { id: CategoryType; label: string; icon: typeof Utensils }[] =
   { id: 'stay', label: '숙소', icon: Bed },
 ]
 
+// Kakao API category_name 기반 필터링 패턴
+const categoryPatterns: Record<CategoryType, RegExp[]> = {
+  all: [],
+  food: [
+    /음식점/,
+    /한식|중식|일식|양식|분식|패스트푸드/,
+    /치킨|피자|햄버거|국밥|삼겹살|고기|해산물|초밥|라멘|파스타/,
+  ],
+  cafe: [
+    /카페/,
+    /커피/,
+    /디저트/,
+    /베이커리/,
+    /빙수|아이스크림/,
+  ],
+  sight: [
+    /관광/,
+    /명소/,
+    /문화시설/,
+    /공원/,
+    /박물관|미술관|전시/,
+    /테마파크|놀이공원/,
+    /해수욕장|바다|해변/,
+  ],
+  stay: [
+    /숙박/,
+    /호텔/,
+    /모텔/,
+    /펜션/,
+    /리조트/,
+    /게스트하우스/,
+    /민박/,
+  ],
+}
+
+// category_name을 기반으로 카테고리 타입 확인
+function matchesCategory(categoryName: string, category: CategoryType): boolean {
+  if (category === 'all') return true
+  const patterns = categoryPatterns[category]
+  return patterns.some(pattern => pattern.test(categoryName))
+}
+
 interface PlaceSearchDialogProps {
   isOpen: boolean
   onClose: () => void
@@ -44,11 +86,17 @@ interface PlaceSearchDialogProps {
 
 export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDialogProps) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<KakaoPlace[]>([])
+  const [allResults, setAllResults] = useState<KakaoPlace[]>([]) // 원본 결과
   const [isLoading, setIsLoading] = useState(false)
   const [isKakaoLoaded, setIsKakaoLoaded] = useState(false)
   const [activeCategory, setActiveCategory] = useState<CategoryType>('all')
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // category_name 기반 실제 필터링
+  const filteredResults = useMemo(() => {
+    if (activeCategory === 'all') return allResults
+    return allResults.filter(place => matchesCategory(place.category_name, activeCategory))
+  }, [allResults, activeCategory])
 
   useEffect(() => {
     const checkKakaoLoaded = () => {
@@ -61,7 +109,7 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
     if (isOpen) {
       checkKakaoLoaded()
       setQuery('')
-      setResults([])
+      setAllResults([])
       setActiveCategory('all')
     }
   }, [isOpen])
@@ -72,28 +120,16 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
     setIsLoading(true)
     const ps = new window.kakao.maps.services.Places()
     
-    // Add category filter to query
-    let searchQuery = query
-    if (activeCategory !== 'all') {
-      const categoryKeywords: Record<CategoryType, string> = {
-        all: '',
-        food: '맛집 식당 음식점',
-        cafe: '카페 커피',
-        sight: '관광지 명소',
-        stay: '호텔 펜션 숙소',
-      }
-      searchQuery = `${query} ${categoryKeywords[activeCategory]}`
-    }
-    
-    ps.keywordSearch(searchQuery, (data: KakaoPlace[], status: string) => {
+    // 순수 키워드로 검색, 필터링은 category_name 기반으로 클라이언트에서 처리
+    ps.keywordSearch(query, (data: KakaoPlace[], status: string) => {
       setIsLoading(false)
       if (status === window.kakao.maps.services.Status.OK) {
-        setResults(data)
+        setAllResults(data)
       } else {
-        setResults([])
+        setAllResults([])
       }
     })
-  }, [query, isKakaoLoaded, activeCategory])
+  }, [query, isKakaoLoaded])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -104,7 +140,7 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
     }
   }
 
-  // 입력 시 자동 검색 (디바운싱)
+  // 입력 시 자동 검색 (디바운싱) - 카테고리 변경은 클라이언트 필터링이므로 재검색 불필요
   useEffect(() => {
     if (!query.trim() || !isKakaoLoaded) return
     
@@ -121,7 +157,7 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
         clearTimeout(debounceTimerRef.current)
       }
     }
-  }, [query, activeCategory, isKakaoLoaded, searchPlaces])
+  }, [query, isKakaoLoaded, searchPlaces])
 
   const handleSelect = (place: KakaoPlace) => {
     onSelect({
@@ -133,7 +169,7 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
       category: place.category_name,
     })
     setQuery('')
-    setResults([])
+    setAllResults([])
     onClose()
   }
 
@@ -170,18 +206,13 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
             </Button>
           </div>
 
-          {/* Category Tabs */}
+          {/* Category Tabs - 클라이언트 필터링이므로 재검색 불필요 */}
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1"
           >
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => {
-                  setActiveCategory(cat.id)
-                  if (query.trim()) {
-                    setTimeout(searchPlaces, 0)
-                  }
-                }}
+                onClick={() => setActiveCategory(cat.id)}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                   activeCategory === cat.id
                     ? 'bg-violet-600 text-white'
@@ -210,7 +241,7 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
                 <div className="w-10 h-10 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin" />
                 <p className="text-gray-400 mt-4">검색 중...</p>
               </motion.div>
-            ) : results.length === 0 ? (
+            ) : filteredResults.length === 0 ? (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0 }}
@@ -223,7 +254,10 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
                   <MapPin className="w-8 h-8 text-gray-300" />
                 </div>
                 <p className="text-gray-500 font-medium">
-                  {query ? '검색 결과가 없습니다' : '장소 이름을 입력하고 검색하세요'}
+                  {!query ? '장소 이름을 입력하고 검색하세요' 
+                    : activeCategory !== 'all' && allResults.length > 0 
+                      ? `'${categories.find(c => c.id === activeCategory)?.label}' 카테고리에 해당하는 결과가 없습니다`
+                      : '검색 결과가 없습니다'}
                 </p>
               </motion.div>
             ) : (
@@ -234,9 +268,14 @@ export function PlaceSearchDialog({ isOpen, onClose, onSelect }: PlaceSearchDial
                 exit={{ opacity: 0 }}
                 className="space-y-3"
               >
-                <p className="text-sm text-gray-500 mb-3">{results.length}개의 결과</p>
+                <p className="text-sm text-gray-500 mb-3">
+                  {filteredResults.length}개의 결과
+                  {activeCategory !== 'all' && allResults.length !== filteredResults.length && (
+                    <span className="text-gray-400"> (전체 {allResults.length}개 중)</span>
+                  )}
+                </p>
                 
-                {results.map((place, idx) => {
+                {filteredResults.map((place, idx) => {
                   const category = getCategoryFromPlace(place)
                   return (
                     <motion.button
