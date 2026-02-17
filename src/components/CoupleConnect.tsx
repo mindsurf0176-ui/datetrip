@@ -126,7 +126,7 @@ export default function CoupleConnect() {
           <Users className="w-8 h-8 text-green-600" />
         </div>
         <h3 className="text-lg font-bold text-gray-900 mb-2">커플 연결 완료</h3>
-        <p className="text-gray-500">함께 여행을 계획핳세요</p>
+        <p className="text-gray-500">함께 여행을 계획하세요</p>
       </motion.div>
     )
   }

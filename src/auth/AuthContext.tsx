@@ -24,7 +24,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [isGuest, setIsGuest] = useState(false)
 
+  const fetchCoupleInfo = async (userId: string) => {
+    try {
+      const { data: coupleData, error } = await supabase
+        .from('couples')
+        .select('*')
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching couple:', error)
+      }
+      
+      setCouple(coupleData || null)
+    } catch (error) {
+      console.error('Error fetching couple info:', error)
+      setCouple(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
+    const fetchUserProfile = async (userId: string) => {
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+
+        if (error) throw error
+        
+        setUser(profile)
+        
+        // 커플 정보 가져오기
+        await fetchCoupleInfo(userId)
+      } catch (error) {
+        console.error('Error fetching user profile:', error)
+        setUser(null)
+        setLoading(false)
+      }
+    }
+
     // 현재 세션 확인
     supabase.auth.getSession().then(({ data }: { data: { session: { user: { id: string } } | null } }) => {
       if (data.session?.user) {
@@ -50,48 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [])
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) throw error
-      
-      setUser(profile)
-      
-      // 커플 정보 가져오기
-      await fetchCoupleInfo(userId)
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-      setUser(null)
-      setLoading(false)
-    }
-  }
-
-  const fetchCoupleInfo = async (userId: string) => {
-    try {
-      const { data: coupleData, error } = await supabase
-        .from('couples')
-        .select('*')
-        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching couple:', error)
-      }
-      
-      setCouple(coupleData || null)
-    } catch (error) {
-      console.error('Error fetching couple info:', error)
-      setCouple(null)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

@@ -115,26 +115,26 @@ export default function HomePage() {
   }, [user, loading, router])
 
   useEffect(() => {
+    const fetchMyTrips = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('trips')
+          .select('*')
+          .eq('couple_id', couple?.id)
+          .order('start_date', { ascending: true })
+          .limit(3)
+
+        if (error) throw error
+        setMyTrips(data || [])
+      } catch (error) {
+        console.error('Error fetching trips:', error)
+      }
+    }
+
     if (couple) {
       fetchMyTrips()
     }
   }, [couple])
-
-  const fetchMyTrips = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('couple_id', couple?.id)
-        .order('start_date', { ascending: true })
-        .limit(3)
-
-      if (error) throw error
-      setMyTrips(data || [])
-    } catch (error) {
-      console.error('Error fetching trips:', error)
-    }
-  }
 
   if (loading) {
     return (
@@ -201,7 +201,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-gray-900">내 여행</h2>
                   <Link href="/trips" className="text-sm text-violet-600 font-medium flex items-center hover:underline">
-                    전첳 보기
+                    전체 보기
                     <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>

@@ -41,7 +41,7 @@ const getCategoryStyle = (placeName: string) => {
   if (name.includes('호텔') || name.includes('펜션') || name.includes('숙소')) {
     return { color: 'bg-blue-100 text-blue-700', label: '숙소', icon: 'hotel' }
   }
-  if (name.includes('공원') || name.includes('산') || name.includes('바다') || name.includes('핸')) {
+  if (name.includes('공원') || name.includes('산') || name.includes('바다') || name.includes('해변')) {
     return { color: 'bg-green-100 text-green-700', label: '자연', icon: 'nature' }
   }
   return { color: 'bg-violet-100 text-violet-700', label: '관광', icon: 'sight' }
@@ -205,7 +205,7 @@ export function DayTimeline({ items, onReorder, onDelete, onEdit }: DayTimelineP
             <Plus className="w-8 h-8 text-gray-300" />
           </div>
           <p className="text-gray-500 font-medium">아직 일정이 없어요</p>
-          <p className="text-sm text-gray-400 mt-1">장소를 추가핳세요</p>
+          <p className="text-sm text-gray-400 mt-1">장소를 추가하세요</p>
         </motion.div>
       ) : (
         <DndContext
