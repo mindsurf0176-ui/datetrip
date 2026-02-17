@@ -83,9 +83,11 @@ export default function LoginPage() {
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
+                role="alert"
+                aria-live="polite"
                 className="p-3 text-sm text-red-600 bg-red-50 rounded-xl flex items-center gap-2"
               >
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                 <span>{error}</span>
               </motion.div>
             )}

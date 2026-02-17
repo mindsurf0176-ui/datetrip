@@ -13,6 +13,8 @@ import { DayTimeline } from '@/components/DayTimeline'
 import { KakaoMap } from '@/components/KakaoMap'
 import { PlaceSearchDialog } from '@/components/PlaceSearchDialog'
 import { ScheduleEditDialog } from '@/components/ScheduleEditDialog'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { getDatesBetween, formatDate } from '@/lib/utils'
 import { 
   ArrowLeft, 
   Calendar, 
@@ -32,7 +34,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 export default function TripDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, isGuest } = useAuth()
   const tripId = params.id as string
 
   const [trip, setTrip] = useState<Trip | null>(null)
@@ -45,6 +47,11 @@ export default function TripDetailPage() {
   const [showAllOnMap, setShowAllOnMap] = useState(false)
   const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null)
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing'>('synced')
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; itemId: string | null }>({
+    open: false,
+    itemId: null,
+  })
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchTrip = useCallback(async () => {
     try {
@@ -86,8 +93,9 @@ export default function TripDetailPage() {
     }
   }, [tripId, fetchTrip, fetchScheduleItems])
 
+  // 실시간 동기화 (게스트 모드에서는 스킵)
   useEffect(() => {
-    if (!tripId) return
+    if (!tripId || isGuest) return
 
     const channel = supabase
       .channel(`trip_${tripId}`)
@@ -122,20 +130,7 @@ export default function TripDetailPage() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [tripId])
-
-  const getDatesBetween = (startDate: string, endDate: string): string[] => {
-    const dates: string[] = []
-    const current = new Date(startDate)
-    const end = new Date(endDate)
-    
-    while (current <= end) {
-      dates.push(current.toISOString().split('T')[0])
-      current.setDate(current.getDate() + 1)
-    }
-    
-    return dates
-  }
+  }, [tripId, isGuest])
 
   const getItemsByDate = (date: string) => {
     return scheduleItems.filter((item) => item.visit_date === date)
@@ -197,19 +192,26 @@ export default function TripDetailPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+  const handleDeleteClick = (id: string) => {
+    setDeleteConfirm({ open: true, itemId: id })
+  }
 
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.itemId) return
+
+    setIsDeleting(true)
     try {
       const { error } = await supabase
         .from('schedule_items')
         .delete()
-        .eq('id', id)
+        .eq('id', deleteConfirm.itemId)
 
       if (error) throw error
+      setDeleteConfirm({ open: false, itemId: null })
     } catch (error) {
       console.error('Error deleting:', error)
-      alert('삭제에 실패했습니다.')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -323,7 +325,7 @@ export default function TripDetailPage() {
               <div>
                 <p className="text-violet-100 text-sm">여행 기간</p>
                 <p className="text-xl font-bold">
-                  {new Date(trip.start_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })} - {new Date(trip.end_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                  {formatDate(trip.start_date, { month: 'short', day: 'numeric' })} - {formatDate(trip.end_date, { month: 'short', day: 'numeric' })}
                 </p>
                 <p className="text-violet-100 text-sm mt-0.5">
                   {tripDates.length}일 일정
@@ -451,7 +453,7 @@ export default function TripDetailPage() {
                   <DayTimeline
                     items={currentItems}
                     onReorder={handleReorder}
-                    onDelete={handleDelete}
+                    onDelete={handleDeleteClick}
                     onEdit={handleEdit}
                   />
                 </div>
@@ -562,6 +564,18 @@ export default function TripDetailPage() {
           }}
           item={editingItem}
           onSave={handleSaveEdit}
+        />
+
+        <ConfirmDialog
+          open={deleteConfirm.open}
+          onOpenChange={(open) => setDeleteConfirm({ open, itemId: open ? deleteConfirm.itemId : null })}
+          title="장소 삭제"
+          description="이 장소를 일정에서 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다."
+          confirmText="삭제"
+          cancelText="취소"
+          variant="destructive"
+          onConfirm={handleDeleteConfirm}
+          loading={isDeleting}
         />
       </div>
     </KakaoMapProvider>

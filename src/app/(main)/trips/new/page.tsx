@@ -110,7 +110,10 @@ export default function NewTripPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="card-triple p-6 space-y-6">
               {error && (
-                <div className="p-4 text-sm text-red-600 bg-red-50 rounded-xl border border-red-100"
+                <div 
+                  role="alert"
+                  aria-live="polite"
+                  className="p-4 text-sm text-red-600 bg-red-50 rounded-xl border border-red-100"
                 >
                   {error}
                 </div>

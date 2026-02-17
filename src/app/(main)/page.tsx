@@ -9,6 +9,7 @@ import CoupleConnect from '@/components/CoupleConnect'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { formatDate, calculateDday } from '@/lib/utils'
 import { 
   Search, 
   MapPin, 
@@ -83,24 +84,6 @@ const recommendedCourses = [
   }
 ]
 
-function calculateDday(startDate: string): string {
-  const today = new Date()
-  const start = new Date(startDate)
-  const diffTime = start.getTime() - today.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
-  if (diffDays === 0) return 'D-Day'
-  if (diffDays < 0) return `D+${Math.abs(diffDays)}`
-  return `D-${diffDays}`
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('ko-KR', {
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
 export default function HomePage() {
   const { user, couple, loading, isGuest } = useAuth()
   const router = useRouter()
@@ -116,6 +99,9 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchMyTrips = async () => {
+      // 게스트 모드에서는 API 호출하지 않음
+      if (isGuest) return
+
       try {
         const { data, error } = await supabase
           .from('trips')
@@ -131,10 +117,10 @@ export default function HomePage() {
       }
     }
 
-    if (couple) {
+    if (couple && !isGuest) {
       fetchMyTrips()
     }
-  }, [couple])
+  }, [couple, isGuest])
 
   if (loading) {
     return (
@@ -226,7 +212,7 @@ export default function HomePage() {
                               {trip.destination}
                             </p>
                             <p className="text-sm text-gray-400 mt-0.5">
-                              {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                              {formatDate(trip.start_date, { month: 'short', day: 'numeric' })} - {formatDate(trip.end_date, { month: 'short', day: 'numeric' })}
                             </p>
                           </div>
                           <div className="flex flex-col items-end gap-1">

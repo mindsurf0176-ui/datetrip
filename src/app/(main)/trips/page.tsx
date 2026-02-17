@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { Trip } from '@/types'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
+import { formatDate, calculateDday, getTripStatus, getTripDuration } from '@/lib/utils'
 import { 
   Calendar, 
   MapPin, 
@@ -19,47 +20,18 @@ import {
   ArrowRight
 } from 'lucide-react'
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('ko-KR', {
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-function calculateDday(startDate: string): string {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const start = new Date(startDate)
-  start.setHours(0, 0, 0, 0)
-  const diffTime = start.getTime() - today.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
-  if (diffDays === 0) return 'D-Day'
-  if (diffDays < 0) return `D+${Math.abs(diffDays)}`
-  return `D-${diffDays}`
-}
-
-function getTripStatus(startDate: string, endDate: string): 'upcoming' | 'ongoing' | 'past' {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const start = new Date(startDate)
-  start.setHours(0, 0, 0, 0)
-  const end = new Date(endDate)
-  end.setHours(0, 0, 0, 0)
-  
-  if (today < start) return 'upcoming'
-  if (today > end) return 'past'
-  return 'ongoing'
-}
-
 export default function TripsPage() {
-  const { couple } = useAuth()
+  const { couple, isGuest } = useAuth()
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all')
 
   const fetchTrips = useCallback(async () => {
-    if (!couple) return
+    // 게스트 모드에서는 API 호출하지 않음
+    if (!couple || isGuest) {
+      setLoading(false)
+      return
+    }
 
     try {
       const { data, error } = await supabase
@@ -75,7 +47,7 @@ export default function TripsPage() {
     } finally {
       setLoading(false)
     }
-  }, [couple])
+  }, [couple, isGuest])
 
   useEffect(() => {
     if (couple) {
@@ -244,7 +216,7 @@ export default function TripsPage() {
                               <div className="flex items-center gap-1 text-sm text-gray-500">
                                 <Clock className="w-4 h-4" />
                                 <span>
-                                  {Math.ceil((new Date(trip.end_date).getTime() - new Date(trip.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1}일 일정
+                                  {getTripDuration(trip.start_date, trip.end_date)}일 일정
                                 </span>
                               </div>
                               <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-violet-600 transition-colors" />
