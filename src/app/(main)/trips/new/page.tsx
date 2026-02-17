@@ -48,13 +48,19 @@ export default function NewTripPage() {
     }
 
     try {
+      // UUID 형식 검증
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(couple.id)) {
+        throw new Error('유효하지 않은 커플 정보입니다. 다시 로그인해주세요.')
+      }
+
       const { data, error: insertError } = await supabase
         .from('trips')
         .insert([
           {
             couple_id: couple.id,
-            title,
-            destination,
+            title: title.trim(),
+            destination: destination.trim(),
             start_date: startDate,
             end_date: endDate,
           },
@@ -62,11 +68,28 @@ export default function NewTripPage() {
         .select()
         .single()
 
-      if (insertError) throw insertError
+      if (insertError) {
+        console.error('Trip creation error:', insertError)
+        
+        // 사용자 친화적 에러 메시지
+        if (insertError.code === '42501' || insertError.message.includes('policy')) {
+          throw new Error('여행 생성 권한이 없습니다. 로그인 상태를 확인해주세요.')
+        } else if (insertError.code === '23503') {
+          throw new Error('커플 정보를 찾을 수 없습니다. 커플 연결을 확인해주세요.')
+        } else if (insertError.code === 'PGRST116') {
+          throw new Error('여행 생성 후 데이터를 불러오는데 실패했습니다.')
+        }
+        throw insertError
+      }
+
+      if (!data?.id) {
+        throw new Error('여행이 생성되었지만 ID를 받지 못했습니다.')
+      }
 
       router.push(`/trips/${data.id}`)
     } catch (err: Error | unknown) {
-      const message = err instanceof Error ? err.message : '여행 생성에 실패했습니다.'
+      console.error('Trip creation failed:', err)
+      const message = err instanceof Error ? err.message : '여행 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'
       setError(message)
       setLoading(false)
     }
